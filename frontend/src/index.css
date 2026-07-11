@@ -541,27 +541,23 @@ html.custom-cursor-active * {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Mobile nav pill: equal side columns + equal gaps (logo | search | menu) */
+/* Mobile nav pill: equal side slots; search gets optical left offset
+   (logo fills its cell; menu glyph is inset inside the tap target) */
 .nav-pill {
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
   align-items: center;
-  column-gap: 0.625rem;
+  column-gap: 0.75rem;
   height: 3.25rem;
   padding: 0.375rem;
   border-radius: 999px;
 }
 
-.nav-pill > :nth-child(1) {
-  justify-self: start;
-}
-
-.nav-pill > :nth-child(2) {
+.nav-pill__search {
   min-width: 0;
-}
-
-.nav-pill > :nth-child(3) {
-  justify-self: end;
+  /* Optical balance: logo fills its cell; menu glyph sits inset in the tap target */
+  margin-left: 0.5rem;
+  margin-right: 0;
 }
 
 @media (min-width: 1024px) {
@@ -573,10 +569,9 @@ html.custom-cursor-active * {
     padding: 0.75rem 1.25rem;
   }
 
-  .nav-pill > :nth-child(1),
-  .nav-pill > :nth-child(2),
-  .nav-pill > :nth-child(3) {
-    justify-self: unset;
+  .nav-pill__search {
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 
@@ -590,8 +585,9 @@ html.custom-cursor-active * {
   box-sizing: border-box;
   border-color: rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
-  padding: 0 0.65rem 0 0.35rem;
-  gap: 0.3rem;
+  /* Symmetric field padding — no leading icon crowding the logo side */
+  padding: 0 0.75rem;
+  gap: 0;
 }
 
 .nav-search--in-pill .nav-search__input {
@@ -605,10 +601,9 @@ html.custom-cursor-active * {
   color: rgba(255, 255, 255, 0.4);
 }
 
+/* Hide trailing icon in the pill — field itself is the control */
 .nav-search--in-pill .nav-search__submit {
-  order: -1;
-  width: 1.75rem;
-  height: 1.75rem;
+  display: none;
 }
 
 .nav-search--mobile .nav-search__field {

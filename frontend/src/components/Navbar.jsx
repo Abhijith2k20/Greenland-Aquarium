@@ -115,7 +115,7 @@ export default function Navbar() {
           </AppLink>
 
           {!isLg && (
-            <div className="flex h-10 min-w-0 items-center">
+            <div className="nav-pill__search flex h-10 items-center">
               <NavSearch className="nav-search--in-pill w-full" />
             </div>
           )}
