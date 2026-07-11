@@ -1,4 +1,4 @@
-# Cloudflare Pages project settings (optional local `wrangler pages` use)
-name = "greenland-aquarium"
+# Cloudflare Pages — used by `npx wrangler pages deploy dist`
+name = "greenlandaquarium"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "dist"

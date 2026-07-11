@@ -78,6 +78,8 @@ After setting `VITE_SITE_URL`, update `frontend/public/robots.txt` and `frontend
 3. Build settings:
    - **Root directory:** `frontend`
    - **Build command:** `npm run build`
+   - **Deploy command:** `npx wrangler pages deploy dist`  
+     (do **not** use `npx wrangler deploy` — that is for Workers and will fail)
    - **Build output directory:** `dist`
 4. Add environment variables (Production):
    - `VITE_SANITY_PROJECT_ID`
