@@ -89,7 +89,7 @@ export default function NavSearch({ className = '' }) {
             e.preventDefault()
             openCollectionSearch()
           }}
-          placeholder={onCollection ? 'Search…' : 'Search collection…'}
+          placeholder="Search fish, aquariums, plants…"
           aria-label="Search collection"
           autoComplete="off"
           enterKeyHint="search"

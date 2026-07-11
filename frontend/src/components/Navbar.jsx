@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ArrowUpRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NAV_LINKS } from '../data/content'
 import { useContent } from '../context/ContentContext'
@@ -9,6 +9,12 @@ import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
 import NavSearch from './NavSearch'
 import { scrollToSection } from '../lib/lenisBridge'
+
+const MOBILE_LINKS = [
+  ...NAV_LINKS,
+  { label: 'Visit Store', href: '/#visit' },
+  { label: 'Custom Aquarium', href: '/#custom' },
+]
 
 function goTo(navigate, href) {
   prepareRouteChange()
@@ -68,8 +74,13 @@ export default function Navbar() {
     if (!open) return undefined
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
     }
   }, [open])
 
@@ -79,21 +90,21 @@ export default function Navbar() {
     e.preventDefault()
     e.stopPropagation()
     closeMenu()
-    window.setTimeout(() => goTo(navigate, href), 120)
+    window.setTimeout(() => goTo(navigate, href), 140)
   }
 
   const socialLinkClass =
-    'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-white/30 hover:text-white'
+    'flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-white/30 hover:text-white'
 
   const pillTone =
-    scrolled || !isHome
+    scrolled || !isHome || open
       ? 'border border-transparent bg-[#07090b]/70 shadow-lg shadow-black/30 backdrop-blur-xl backdrop-saturate-150'
       : 'border border-transparent bg-transparent'
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-[60] transition-all duration-500 ${
-        scrolled ? 'py-3' : 'py-5'
+        scrolled || open ? 'py-3' : 'py-5'
       }`}
     >
       <div className="section-pad relative z-[70]">
@@ -121,7 +132,7 @@ export default function Navbar() {
           )}
 
           {isLg && (
-            <div className="ml-auto flex min-w-0 items-center gap-4">
+            <div className="ml-auto flex shrink-0 items-center gap-4">
               {NAV_LINKS.map((link) => (
                 <AppLink
                   key={link.href}
@@ -155,56 +166,75 @@ export default function Navbar() {
             </button>
           )}
         </nav>
-      </div>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.button
-              key="mobile-backdrop"
-              type="button"
-              aria-label="Close menu"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[65] bg-black/60 lg:hidden"
-              onClick={closeMenu}
-            />
+        <AnimatePresence>
+          {open && (
             <motion.div
+              key="mobile-nav-panel"
               id="mobile-nav"
-              key="mobile-panel"
               role="dialog"
               aria-modal="true"
               aria-label="Navigation"
-              initial={{ opacity: 0, y: -12 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.2 }}
-              className="section-pad fixed inset-x-0 top-[5.25rem] z-[70] lg:hidden"
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-[70] mx-auto mt-2 max-w-7xl lg:hidden"
             >
-              <div className="glass rounded-3xl p-4 shadow-xl shadow-black/40">
-                <div className="flex flex-col">
-                  {NAV_LINKS.map((link) => (
+              <div className="mobile-nav-panel">
+                <nav className="flex flex-col">
+                  {MOBILE_LINKS.map((link) => (
                     <a
                       key={link.href}
                       href={link.href}
                       onClick={onMobileNav(link.href)}
-                      className="rounded-xl px-3 py-3 text-lg text-white/85 transition hover:bg-white/5"
                       data-cursor="hover"
+                      className="mobile-nav-panel__link"
                     >
                       {link.label}
                     </a>
                   ))}
+                </nav>
+
+                <div className="mobile-nav-panel__footer">
                   <SocialLinks
                     socials={store?.socials}
-                    className="mt-4 justify-center border-t border-white/10 pt-4"
-                    iconSize={16}
+                    iconSize={15}
                     linkClassName={socialLinkClass}
                   />
+                  <a
+                    href={store?.whatsapp || `https://wa.me/${store?.phoneRaw || '919611269901'}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-cursor="hover"
+                    className="hero-cta__dive hero-cta__dive--nav"
+                    onClick={closeMenu}
+                  >
+                    <span className="hero-cta__ripple" aria-hidden />
+                    <span className="hero-cta__ripple hero-cta__ripple--delay" aria-hidden />
+                    <span className="hero-cta__label">WhatsApp</span>
+                    <ArrowUpRight className="hero-cta__arrow" size={13} strokeWidth={2.25} aria-hidden />
+                  </a>
                 </div>
               </div>
             </motion.div>
-          </>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>
+        {open && (
+          <motion.button
+            key="mobile-nav-scrim"
+            type="button"
+            aria-label="Close menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mobile-nav-scrim fixed inset-0 z-[60] lg:hidden"
+            onClick={closeMenu}
+          />
         )}
       </AnimatePresence>
     </header>
