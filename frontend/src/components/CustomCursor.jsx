@@ -21,6 +21,7 @@ export default function CustomCursor() {
   useEffect(() => {
     if (!canUseCustomCursor()) return undefined
     setEnabled(true)
+    document.documentElement.classList.add('custom-cursor-active')
 
     let raf = 0
 
@@ -69,6 +70,7 @@ export default function CustomCursor() {
     window.addEventListener('mouseover', onOver, { passive: true })
 
     return () => {
+      document.documentElement.classList.remove('custom-cursor-active')
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseover', onOver)
       window.clearTimeout(idleTimer.current)

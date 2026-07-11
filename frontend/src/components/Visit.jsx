@@ -13,12 +13,16 @@ export default function Visit() {
   const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
 
   const openWhatsApp = () => {
+    const name = form.name.trim()
+    const message = form.message.trim()
+    if (!name || !message) return false
     window.open(
       `https://wa.me/${store.phoneRaw}?text=${encodeURIComponent(
-        `Hi, I'm ${form.name}. ${form.message}`,
+        `Hi, I'm ${name}. ${message}`,
       )}`,
       '_blank',
     )
+    return true
   }
 
   const onSubmit = async (e) => {
@@ -56,11 +60,17 @@ export default function Visit() {
         })
       }
     } catch {
-      openWhatsApp()
-      setStatus({
-        type: 'success',
-        message: 'Opening WhatsApp so you can reach us directly.',
-      })
+      if (openWhatsApp()) {
+        setStatus({
+          type: 'success',
+          message: 'Opening WhatsApp so you can reach us directly.',
+        })
+      } else {
+        setStatus({
+          type: 'error',
+          message: 'Something went wrong. Please try again or call us.',
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -129,7 +139,7 @@ export default function Visit() {
               </div>
 
               <a
-                href={`tel:${store.phoneRaw}`}
+                href={`tel:+${String(store.phoneRaw).replace(/^\+/, '')}`}
                 className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white transition hover:border-white/20 hover:bg-white/[0.06]"
                 data-cursor="hover"
               >
@@ -251,6 +261,8 @@ export default function Visit() {
 
               {status.message && (
                 <p
+                  role="status"
+                  aria-live="polite"
                   className={`text-sm ${
                     status.type === 'error' ? 'text-orange' : 'text-green'
                   }`}

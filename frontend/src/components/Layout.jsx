@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useLocation, Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import CustomCursor from './CustomCursor'
 import { useLenis } from '../hooks/useLenis'
+import { scrollToSection } from '../lib/lenisBridge'
 
 function resetScrollTop(lenis) {
   window.scrollTo(0, 0)
@@ -17,40 +18,31 @@ function resetScrollTop(lenis) {
 export default function Layout() {
   const { pathname, hash } = useLocation()
   const lenis = useLenis(pathname === '/')
+  const cancelScroll = useRef(null)
+
+  // Before paint: jump to top so new pages don't flash at the old scroll position
+  useLayoutEffect(() => {
+    if (hash) return
+    resetScrollTop(null)
+  }, [pathname, hash])
 
   useEffect(() => {
-    const scrollToHash = () => {
-      if (hash) {
-        const id = hash.replace(/^#/, '')
-        const el = document.getElementById(id)
-        if (!el) return false
-        if (lenis) {
-          lenis.scrollTo(el, { offset: -90, immediate: false })
-        } else {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
-        return true
-      }
+    cancelScroll.current?.()
+    cancelScroll.current = null
 
-      resetScrollTop(lenis)
-      return true
-    }
-
-    let tries = 0
-    const tick = () => {
-      const ok = scrollToHash()
-      if (!ok && hash && tries < 20) {
-        tries += 1
-        requestAnimationFrame(tick)
+    if (hash) {
+      const id = hash.replace(/^#/, '')
+      const t = window.setTimeout(() => {
+        cancelScroll.current = scrollToSection(id, { offset: -90 })
+      }, 50)
+      return () => {
+        window.clearTimeout(t)
+        cancelScroll.current?.()
       }
     }
-    requestAnimationFrame(tick)
 
-    if (!hash) {
-      const t = window.setTimeout(() => resetScrollTop(lenis), 50)
-      return () => window.clearTimeout(t)
-    }
-
+    // Sync Lenis after it mounts/destroys on home ↔ other routes
+    resetScrollTop(lenis)
     return undefined
   }, [pathname, hash, lenis])
 

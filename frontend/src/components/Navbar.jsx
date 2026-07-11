@@ -7,15 +7,20 @@ import { useContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
 import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
+import { scrollToSection } from '../lib/lenisBridge'
 
 function goTo(navigate, href) {
   prepareRouteChange()
   if (href.startsWith('/#')) {
-    navigate({ pathname: '/', hash: `#${href.slice(2)}` })
+    const id = href.slice(2)
+    navigate({ pathname: '/', hash: `#${id}` })
+    window.setTimeout(() => scrollToSection(id, { offset: -90 }), 80)
     return
   }
   if (href.startsWith('#')) {
+    const id = href.slice(1)
     navigate({ pathname: '/', hash: href })
+    window.setTimeout(() => scrollToSection(id, { offset: -90 }), 80)
     return
   }
   navigate(href)
@@ -62,7 +67,8 @@ export default function Navbar() {
     e.preventDefault()
     e.stopPropagation()
     closeMenu()
-    requestAnimationFrame(() => goTo(navigate, href))
+    // Wait for menu close + body overflow unlock before scrolling
+    window.setTimeout(() => goTo(navigate, href), 120)
   }
 
   const socialLinkClass =
@@ -122,6 +128,7 @@ export default function Navbar() {
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
+            aria-controls="mobile-nav"
             data-cursor="hover"
           >
             {open ? <X size={22} /> : <Menu size={22} />}
@@ -143,7 +150,11 @@ export default function Navbar() {
               onClick={closeMenu}
             />
             <motion.div
+              id="mobile-nav"
               key="mobile-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation"
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}

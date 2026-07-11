@@ -1,5 +1,6 @@
 import {createContext, useContext, useEffect, useState} from 'react'
 import {fetchSiteContent} from '../lib/contentApi'
+import {isSanityConfigured} from '../lib/sanity'
 import {
   STORE,
   CATEGORIES,
@@ -24,26 +25,29 @@ const defaultFeatured = FEATURED_FISH.filter((f) => f.featured !== false).map((f
   image: f.image,
 }))
 
+// When Sanity is configured, avoid flashing Unsplash fallbacks before CMS data arrives
+const waitForCms = isSanityConfigured
+
 const ContentContext = createContext({
   store: STORE,
-  categories: CATEGORIES,
-  collection: defaultCollection,
-  featuredFish: defaultFeatured,
+  categories: waitForCms ? [] : CATEGORIES,
+  collection: waitForCms ? [] : defaultCollection,
+  featuredFish: waitForCms ? [] : defaultFeatured,
   services: SERVICES,
   reviews: REVIEWS,
-  loading: true,
+  loading: waitForCms,
   source: 'local',
 })
 
 export function ContentProvider({children}) {
   const [content, setContent] = useState({
     store: STORE,
-    categories: CATEGORIES,
-    collection: defaultCollection,
-    featuredFish: defaultFeatured,
+    categories: waitForCms ? [] : CATEGORIES,
+    collection: waitForCms ? [] : defaultCollection,
+    featuredFish: waitForCms ? [] : defaultFeatured,
     services: SERVICES,
     reviews: REVIEWS,
-    loading: true,
+    loading: waitForCms,
     source: 'local',
   })
 

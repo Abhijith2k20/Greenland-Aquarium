@@ -165,7 +165,29 @@ export default function FeaturedFish() {
     }
   }, [isDesktop, items.length])
 
-  if (!items.length) return null
+  if (!items.length) {
+    return (
+      <section id="featured" className="section-pad relative py-20 sm:py-24">
+        <div className="mx-auto max-w-7xl">
+          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">Featured</p>
+          <h2 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">
+            Species in the spotlight.
+          </h2>
+          <p className="mt-4 max-w-md text-sm text-white/50">
+            Featured species will appear here once they’re added in the CMS.
+          </p>
+          <Link
+            to="/collection"
+            onClick={() => prepareRouteChange()}
+            className="mt-6 inline-block text-sm text-blue transition hover:underline"
+            data-cursor="hover"
+          >
+            View full collection →
+          </Link>
+        </div>
+      </section>
+    )
+  }
 
   const steps = Math.max(1, items.length - 1)
 
@@ -249,8 +271,6 @@ export default function FeaturedFish() {
               return (
                 <div
                   key={fish.id}
-                  role="button"
-                  tabIndex={0}
                   data-index={i}
                   data-active={isActive ? 'true' : 'false'}
                   data-near={Math.abs(i - active) === 1 ? 'true' : 'false'}
@@ -259,14 +279,15 @@ export default function FeaturedFish() {
                   }}
                   onClick={() => goToCard(i)}
                   onKeyDown={(e) => {
+                    if (e.target !== e.currentTarget) return
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
                       goToCard(i)
                     }
                   }}
+                  tabIndex={0}
                   data-cursor="hover"
-                  aria-pressed={isActive}
-                  aria-label={`${fish.name} — featured item`}
+                  aria-label={`${fish.name} — featured item${isActive ? '' : ', select to expand'}`}
                   className={`featured-panel relative h-full shrink-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint ${
                     isDesktop
                       ? 'flex-[1_1_0%]'
@@ -280,7 +301,7 @@ export default function FeaturedFish() {
                 >
                   <img
                     src={fish.image}
-                    alt=""
+                    alt={fish.name}
                     className="featured-panel__img pointer-events-none absolute inset-0 h-full w-full object-cover brightness-110"
                     loading={i === 0 ? 'eager' : 'lazy'}
                     decoding="async"
@@ -301,7 +322,10 @@ export default function FeaturedFish() {
                     </span>
                   </div>
 
-                  <div className="featured-panel__detail absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6">
+                  <div
+                    className="featured-panel__detail absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6"
+                    aria-hidden={!isActive}
+                  >
                     <h3 className="pointer-events-none font-display text-xl font-semibold tracking-tight text-white sm:text-2xl lg:text-3xl">
                       {fish.name}
                     </h3>
@@ -321,6 +345,7 @@ export default function FeaturedFish() {
                       )}`}
                       target="_blank"
                       rel="noreferrer"
+                      tabIndex={isActive ? 0 : -1}
                       onClick={(e) => e.stopPropagation()}
                       className="mt-3 inline-flex items-center gap-1 rounded-full bg-[#25d366] px-2.5 py-1.5 text-[11px] font-semibold transition hover:bg-[#20bd5a] sm:mt-4 sm:gap-1.5 sm:px-3.5 sm:py-2 sm:text-sm"
                       style={{ color: '#000000' }}

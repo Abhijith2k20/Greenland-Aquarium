@@ -19,9 +19,17 @@ export default function Home() {
       <Categories />
       <Suspense fallback={<SectionFallback />}>
         <FeaturedFish />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
         <CustomAquarium />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
         <Services />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
         <Reviews />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
         <Visit />
       </Suspense>
     </>

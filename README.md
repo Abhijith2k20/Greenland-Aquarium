@@ -71,25 +71,32 @@ VITE_SITE_URL=https://your-domain.com
 
 After setting `VITE_SITE_URL`, update `frontend/public/robots.txt` and `frontend/public/sitemap.xml` and replace `REPLACE_WITH_DOMAIN` with the same domain.
 
-## Deploy (Cloudflare Pages)
+## Deploy (Cloudflare Workers + Assets)
 
-1. Push this repo to GitHub/GitLab
-2. In [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → connect the repo
-3. Build settings:
+This project deploys as a **Worker with static assets** (see `frontend/wrangler.toml`). SPA routes (`/collection`, `/privacy`) use `not_found_handling = "single-page-application"`. Do **not** add a `public/_redirects` file — it conflicts with this setup.
+
+### One-time / dashboard
+
+1. From `frontend/`: `npm run build` then `npm run deploy` (or Cloudflare UI default: `npx wrangler deploy`)
+2. Build settings if connecting Git:
    - **Root directory:** `frontend`
    - **Build command:** `npm run build`
-   - **Deploy command:** `npx wrangler pages deploy dist`  
-     (do **not** use `npx wrangler deploy` — that is for Workers and will fail)
+   - **Deploy command:** `npx wrangler deploy` (matches `wrangler.toml`)
    - **Build output directory:** `dist`
-4. Add environment variables (Production):
+3. Add environment variables (Production) — rebuild after changing Vite vars:
    - `VITE_SANITY_PROJECT_ID`
    - `VITE_SANITY_DATASET` = `production`
-   - `VITE_SITE_URL` = `https://your-domain.com`
-5. Deploy, then add your custom domain under the Pages project
-6. Add the production URL to Sanity CORS
-7. Update `public/robots.txt` and `public/sitemap.xml` (`REPLACE_WITH_DOMAIN`)
+   - `VITE_SITE_URL` = your live URL (Workers `*.workers.dev` is fine until you buy a domain)
+4. Add the production URL to Sanity CORS
+5. When you have a custom domain: set `VITE_SITE_URL`, then replace `REPLACE_WITH_DOMAIN` in `public/robots.txt` and `public/sitemap.xml`, rebuild, redeploy
 
-SPA routes (`/collection`, `/privacy`) are handled by `wrangler.toml` → `not_found_handling = "single-page-application"` (no `_redirects` file — that conflicts with Workers deploy).
+### Local deploy
+
+```bash
+cd frontend
+npm run build
+npm run deploy
+```
 
 ## Contact form
 
@@ -114,6 +121,7 @@ To use email instead, create a Formspree form and set `VITE_FORMSPREE_ENDPOINT`.
 |----------|---------|-------------|
 | frontend | `npm run dev` | Local site |
 | frontend | `npm run build` | Production build |
+| frontend | `npm run deploy` | Build output → Cloudflare Workers |
 | studio | `npm run dev` | Local Sanity Studio |
 | studio | `npm run deploy` | Hosted Studio for the client |
 
@@ -123,4 +131,3 @@ To use email instead, create a Formspree form and set `VITE_FORMSPREE_ENDPOINT`.
 - Phone: +91 96112 69901
 - Hours: 10:00 AM – 10:00 PM (every day)
 - Address: 1, SLN Complex, Opp. Anjaneya Temple, Horamavu, Bengaluru 560113
-# Greenland-Aquarium

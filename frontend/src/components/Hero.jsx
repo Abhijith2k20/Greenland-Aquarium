@@ -17,6 +17,16 @@ export default function Hero() {
   const name = store?.name || STORE.name
 
   useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      if (sectionRef.current) sectionRef.current.style.opacity = '1'
+      if (imageRef.current) {
+        imageRef.current.style.opacity = '1'
+        imageRef.current.style.transform = 'none'
+      }
+      return undefined
+    }
+
     const ctx = gsap.context(() => {
       gsap.fromTo(
         sectionRef.current,
@@ -93,7 +103,7 @@ export default function Hero() {
       </div>
 
       {/* Accessible heading (visually hidden — brand is in the artwork) */}
-      <h1 className="absolute h-px w-px overflow-hidden whitespace-nowrap opacity-0">
+      <h1 className="sr-only">
         {name} — {tagline}
       </h1>
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, X, MessageCircle } from 'lucide-react'
 import { COLLECTION_CATEGORIES } from '../data/content'
@@ -13,12 +13,32 @@ export default function Collection() {
 
   const category = searchParams.get('category') || 'All'
 
+  const filterCategories = useMemo(() => {
+    const fromCms = [
+      ...new Set(collection.map((item) => item.category).filter(Boolean)),
+    ].sort((a, b) => a.localeCompare(b))
+    if (fromCms.length === 0) return COLLECTION_CATEGORIES
+    return ['All', ...fromCms]
+  }, [collection])
+
   const setCategory = (value) => {
     const next = new URLSearchParams(searchParams)
     if (!value || value === 'All') next.delete('category')
     else next.set('category', value)
+    if (search.trim()) next.set('q', search.trim())
+    else next.delete('q')
     setSearchParams(next, { replace: true })
   }
+
+  useEffect(() => {
+    const current = searchParams.get('q') || ''
+    const nextQ = search.trim()
+    if (current === nextQ) return
+    const next = new URLSearchParams(searchParams)
+    if (nextQ) next.set('q', nextQ)
+    else next.delete('q')
+    setSearchParams(next, { replace: true })
+  }, [search, searchParams, setSearchParams])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -46,7 +66,7 @@ export default function Collection() {
     }`
 
   return (
-    <div className="relative z-10 min-h-screen bg-[#07090b] pb-20 pt-24 md:pt-28">
+    <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-24 md:pt-28">
       <div className="section-pad mx-auto max-w-7xl">
         <div className="mb-8 sm:mb-10">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
@@ -58,12 +78,13 @@ export default function Collection() {
         </div>
 
         <label className="mb-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0a0e11] px-4 py-3.5 sm:mb-6">
-          <Search size={18} className="shrink-0 text-blue" />
+          <Search size={18} className="shrink-0 text-blue" aria-hidden />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name…"
+            aria-label="Search collection"
             className="w-full bg-transparent text-sm outline-none placeholder:text-white/30"
           />
           {search && (
@@ -73,13 +94,12 @@ export default function Collection() {
           )}
         </label>
 
-        {/* Mobile categories */}
         <div
           className="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="tablist"
           aria-label="Categories"
         >
-          {COLLECTION_CATEGORIES.map((c) => {
+          {filterCategories.map((c) => {
             const active = category === c
             return (
               <button
@@ -98,13 +118,12 @@ export default function Collection() {
         </div>
 
         <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
-          {/* Left category sidebar */}
           <aside className="sticky top-28 hidden self-start lg:block">
             <p className="mb-3 text-[11px] uppercase tracking-[0.28em] text-white/40">
               Categories
             </p>
             <nav className="space-y-1.5" aria-label="Categories">
-              {COLLECTION_CATEGORIES.map((c) => {
+              {filterCategories.map((c) => {
                 const active = category === c
                 return (
                   <button
@@ -122,7 +141,22 @@ export default function Collection() {
           </aside>
 
           <div>
-            {filtered.length === 0 ? (
+            {content.loading ? (
+              <div className="collection-grid grid list-none gap-3 sm:gap-4" aria-busy="true" aria-label="Loading collection">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="overflow-hidden rounded-lg border border-white/[0.06] bg-[#0c1014]"
+                  >
+                    <div className="aspect-[4/3] animate-pulse bg-white/[0.04] sm:aspect-[5/4]" />
+                    <div className="space-y-2 p-2.5 sm:p-3.5">
+                      <div className="h-3 w-3/4 animate-pulse rounded bg-white/[0.06]" />
+                      <div className="h-8 animate-pulse rounded-md bg-white/[0.04]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="rounded-2xl border border-white/10 px-6 py-16 text-center">
                 <p className="font-display text-xl font-semibold">No matches</p>
                 <p className="mt-2 text-sm text-white/45">Try another search or category.</p>

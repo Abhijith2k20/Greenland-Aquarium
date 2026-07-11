@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
+import { scrollToSection } from '../lib/lenisBridge'
 
 function isExternal(path) {
   return (
@@ -11,12 +12,18 @@ function isExternal(path) {
   )
 }
 
+function hashFromPath(path) {
+  if (path.startsWith('/#')) return path.slice(2)
+  if (path.startsWith('#')) return path.slice(1)
+  if (path.includes('#')) return path.split('#')[1] || ''
+  return ''
+}
+
 /**
  * Unified in-app link:
  * - /collection  → React Router page
- * - /#about      → home + scroll to section
- * - #visit       → go home then scroll
- * - https://...  → normal external anchor
+ * - /#visit      → home + scroll to section
+ * - #visit       → home + scroll
  */
 export default function AppLink({ href, to, children, onClick, className, ...props }) {
   const navigate = useNavigate()
@@ -34,13 +41,11 @@ export default function AppLink({ href, to, children, onClick, className, ...pro
     e.preventDefault()
     prepareRouteChange()
 
-    if (path.startsWith('/#')) {
-      navigate({ pathname: '/', hash: `#${path.slice(2)}` })
-      return
-    }
-
-    if (path.startsWith('#')) {
-      navigate({ pathname: '/', hash: path })
+    const id = hashFromPath(path)
+    if (id) {
+      navigate({ pathname: '/', hash: `#${id}` })
+      // Scroll immediately too — Layout effect can miss lazy sections / same-hash clicks
+      window.setTimeout(() => scrollToSection(id, { offset: -90 }), 60)
       return
     }
 

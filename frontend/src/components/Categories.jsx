@@ -7,13 +7,34 @@ import { prepareRouteChange } from '../lib/prepareRouteChange'
 export default function Categories() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-10%' })
-  const { categories } = useContent()
+  const { categories, loading } = useContent()
   const navigate = useNavigate()
 
   const toCollection = (path) => (e) => {
     e.preventDefault()
     prepareRouteChange()
     navigate(path)
+  }
+
+  if (!loading && (!categories || categories.length === 0)) {
+    return (
+      <section id="categories" className="section-pad relative py-28 md:py-36">
+        <div className="mx-auto max-w-7xl">
+          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-green">Collection</p>
+          <h2 className="max-w-2xl font-display text-4xl font-semibold tracking-tight md:text-6xl">
+            Everything for a living world at home.
+          </h2>
+          <Link
+            to="/collection"
+            onClick={toCollection('/collection')}
+            className="mt-6 inline-block text-sm text-blue transition hover:underline"
+            data-cursor="hover"
+          >
+            Browse all
+          </Link>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -55,7 +76,10 @@ export default function Categories() {
           ref={ref}
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5"
         >
-          {categories.map((cat, i) => {
+          {loading && categories.length === 0 ? (
+            <div className="col-span-full min-h-[40vh]" aria-hidden />
+          ) : (
+            categories.map((cat, i) => {
             const path = `/collection?category=${encodeURIComponent(cat.title)}`
             const isFish = cat.id === 'fish' || cat.title === 'Fish'
             const isAquariums = cat.id === 'aquariums' || cat.title === 'Aquariums'
@@ -144,7 +168,8 @@ export default function Categories() {
                 </Link>
               </motion.div>
             )
-          })}
+          })
+          )}
         </div>
       </div>
     </section>

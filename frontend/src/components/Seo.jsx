@@ -4,6 +4,8 @@ import { STORE } from '../data/content'
 
 const SITE_URL = import.meta.env.VITE_SITE_URL || ''
 
+const KNOWN_PATHS = new Set(['/', '/collection', '/privacy'])
+
 const titles = {
   '/': 'Greenland Aquarium | Bring Nature Home',
   '/collection': 'Collection | Greenland Aquarium',
@@ -22,8 +24,13 @@ export default function Seo() {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    const title = titles[pathname] || titles['/']
-    const description = descriptions[pathname] || descriptions['/']
+    const is404 = !KNOWN_PATHS.has(pathname)
+    const title = is404
+      ? 'Page not found | Greenland Aquarium'
+      : titles[pathname] || titles['/']
+    const description = is404
+      ? 'This page does not exist on the Greenland Aquarium website.'
+      : descriptions[pathname] || descriptions['/']
     document.title = title
 
     const setMeta = (attr, key, content) => {
@@ -38,6 +45,7 @@ export default function Seo() {
     }
 
     setMeta('name', 'description', description)
+    setMeta('name', 'robots', is404 ? 'noindex, nofollow' : 'index, follow')
     setMeta('property', 'og:title', title)
     setMeta('property', 'og:description', description)
     setMeta('property', 'og:type', 'website')
@@ -45,7 +53,7 @@ export default function Seo() {
     setMeta('name', 'twitter:title', title)
     setMeta('name', 'twitter:description', description)
 
-    if (SITE_URL) {
+    if (SITE_URL && !is404) {
       const url = `${SITE_URL.replace(/\/$/, '')}${pathname === '/' ? '' : pathname}`
       setMeta('property', 'og:url', url)
       let link = document.head.querySelector('link[rel="canonical"]')
@@ -55,6 +63,8 @@ export default function Seo() {
         document.head.appendChild(link)
       }
       link.setAttribute('href', url)
+    } else {
+      document.head.querySelector('link[rel="canonical"]')?.remove()
     }
   }, [pathname])
 

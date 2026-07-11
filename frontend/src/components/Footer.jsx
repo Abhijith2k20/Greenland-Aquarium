@@ -79,7 +79,7 @@ export default function Footer() {
               </span>
             </p>
             <a
-              href={`tel:${store.phoneRaw}`}
+              href={`tel:+${String(store.phoneRaw).replace(/^\+/, '')}`}
               className="flex items-center gap-2 transition hover:text-white"
               data-cursor="hover"
             >

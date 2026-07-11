@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useMagnetic } from '../hooks/useMagnetic'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
+import { scrollToSection } from '../lib/lenisBridge'
 
 function isInternalPath(href) {
   return typeof href === 'string' && href.startsWith('/') && !href.startsWith('//')
@@ -13,12 +14,15 @@ function isHashOnly(href) {
 function navigateInternal(navigate, path) {
   prepareRouteChange()
   if (path.startsWith('/#')) {
-    navigate({ pathname: '/', hash: `#${path.slice(2)}` })
+    const id = path.slice(2)
+    navigate({ pathname: '/', hash: `#${id}` })
+    window.setTimeout(() => scrollToSection(id, { offset: -90 }), 60)
     return
   }
   if (path.includes('#')) {
     const [pathname, hashPart] = path.split('#')
     navigate({ pathname: pathname || '/', hash: `#${hashPart}` })
+    window.setTimeout(() => scrollToSection(hashPart, { offset: -90 }), 60)
     return
   }
   navigate(path)
@@ -103,6 +107,7 @@ export default function MagneticButton({
           e.preventDefault()
           prepareRouteChange()
           navigate({ pathname: '/', hash: path })
+          window.setTimeout(() => scrollToSection(path.slice(1), { offset: -90 }), 60)
         }}
         {...props}
       >

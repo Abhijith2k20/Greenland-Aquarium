@@ -9,15 +9,40 @@ import {
 
 function optimizedUrl(source, width) {
   if (!source) return null
+  // Sanity image objects / refs → image builder (respects crop/hotspot + CDN resize)
+  if (typeof source === 'object') {
+    try {
+      return urlFor(source)?.width(width).quality(75).auto('format').url() || null
+    } catch {
+      return null
+    }
+  }
+  // External / Unsplash strings — leave as-is (query params only help some CDNs)
   if (typeof source === 'string') {
-    const sep = source.includes('?') ? '&' : '?'
-    return `${source}${sep}w=${width}&q=75&auto=format`
+    if (source.includes('cdn.sanity.io') && source.includes('/images/')) {
+      // Legacy raw Sanity CDN URL — append width if supported by image API path
+      try {
+        const u = new URL(source)
+        u.searchParams.set('w', String(width))
+        u.searchParams.set('q', '75')
+        u.searchParams.set('auto', 'format')
+        return u.toString()
+      } catch {
+        return source
+      }
+    }
+    return source
   }
-  try {
-    return urlFor(source)?.width(width).quality(75).auto('format').url() || null
-  } catch {
-    return null
-  }
+  return null
+}
+
+function slugFromTitle(title, fallback) {
+  const slug = String(title || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  return slug || fallback
 }
 
 const mapCollectionItem = (f, i) => ({
@@ -43,21 +68,21 @@ const queries = {
     description,
     icon,
     accent,
-    "image": image.asset->url
+    image
   }`,
   collection: `*[_type == "fish"] | order(_createdAt desc){
     _id,
     name,
     category,
     price,
-    "image": image.asset->url
+    image
   }`,
   featured: `*[_type == "featured"] | order(_createdAt desc){
     _id,
     name,
     subtitle,
     description,
-    "image": image.asset->url
+    image
   }`,
 }
 
@@ -101,7 +126,7 @@ export async function fetchSiteContent() {
       categories:
         categories?.length > 0
           ? categories.map((c, i) => ({
-              id: c._id,
+              id: slugFromTitle(c.title, c._id),
               title: c.title,
               description: c.description,
               icon: c.icon || 'Fish',
