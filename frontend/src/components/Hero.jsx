@@ -1,28 +1,24 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, MapPin } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import gsap from 'gsap'
 import Bubbles from './Bubbles'
 import { STORE } from '../data/content'
 import { useContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
 import { scrollToSection } from '../lib/lenisBridge'
-import { useMagnetic } from '../hooks/useMagnetic'
 import heroDesktop from '../assets/hero-desktop.jpg'
 import heroTablet from '../assets/hero-tablet.png'
 import heroMobile from '../assets/hero-mobile.png'
 
-function HeroDiveCta({ to, children }) {
+function HeroDiveCta({ to }) {
   const navigate = useNavigate()
-  const ref = useMagnetic(0.22)
 
   return (
     <a
-      ref={ref}
       href={to}
-      data-cursor="hover"
-      className="hero-cta__dive"
+      className="hero-rail__btn"
       onClick={(e) => {
         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
         e.preventDefault()
@@ -30,10 +26,11 @@ function HeroDiveCta({ to, children }) {
         navigate(to)
       }}
     >
-      <span className="hero-cta__ripple" aria-hidden />
-      <span className="hero-cta__ripple hero-cta__ripple--delay" aria-hidden />
-      <span className="hero-cta__label">{children}</span>
-      <ArrowUpRight className="hero-cta__arrow" size={16} strokeWidth={2.25} aria-hidden />
+      <span className="hero-rail__btn-fill" aria-hidden />
+      <span className="hero-rail__btn-label">Discover the collection</span>
+      <span className="hero-rail__btn-arrow" aria-hidden>
+        <ArrowUpRight size={15} strokeWidth={1.6} />
+      </span>
     </a>
   )
 }
@@ -45,8 +42,7 @@ function HeroVisitCta({ href, children }) {
   return (
     <a
       href={href}
-      data-cursor="hover"
-      className="hero-cta__visit"
+      className="hero-rail__link"
       onClick={(e) => {
         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
         e.preventDefault()
@@ -55,10 +51,7 @@ function HeroVisitCta({ href, children }) {
         window.setTimeout(() => scrollToSection(id, { offset: -90 }), 60)
       }}
     >
-      <MapPin size={14} className="opacity-60" aria-hidden />
-      <span>{children}</span>
-      <ArrowUpRight className="hero-cta__visit-icon" size={14} strokeWidth={2} aria-hidden />
-      <span className="hero-cta__wave" aria-hidden />
+      {children}
     </a>
   )
 }
@@ -148,7 +141,7 @@ export default function Hero() {
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.15)_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/35 to-transparent md:h-28" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/40 via-black/10 to-transparent md:h-36" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/55 via-black/20 to-transparent md:h-44" />
 
       <div className="hidden lg:block">
         <Bubbles count={4} />
@@ -158,29 +151,24 @@ export default function Hero() {
         {name} — {tagline}
       </h1>
 
-      <div className="section-pad relative z-20 flex min-h-[100svh] w-full max-w-[1400px] flex-col items-center justify-end pb-10 pt-24 md:pb-20 md:pt-28">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85, duration: 0.75 }}
-          className="mb-7 max-w-[300px] text-center md:mb-9 md:max-w-md"
-        >
-          <p className="font-display text-lg font-semibold tracking-tight text-white md:text-xl">
-            {tagline}
-          </p>
-          <p className="mt-2 font-body text-[12px] leading-relaxed text-white/50 md:text-sm">
-            Premium exotic fish, custom aquariums & living aquascapes in Bengaluru.
-          </p>
-        </motion.div>
-
+      <div className="section-pad relative z-20 flex min-h-[100svh] w-full max-w-[1400px] flex-col justify-end pb-10 pt-24 md:pb-16 md:pt-28">
         <motion.div
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.05, duration: 0.75 }}
-          className="hero-cta"
+          transition={{ delay: 0.9, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          className="hero-rail"
         >
-          <HeroDiveCta to="/collection">Dive into collection</HeroDiveCta>
-          <HeroVisitCta href="#visit">Visit the store</HeroVisitCta>
+          <div className="hero-rail__actions">
+            <HeroDiveCta to="/collection" />
+            <HeroVisitCta href="#visit">Visit the store</HeroVisitCta>
+          </div>
+
+          <div className="hero-rail__copy">
+            <p className="hero-rail__tagline">{tagline}</p>
+            <p className="hero-rail__lede">
+              Premium exotic fish, custom aquariums & living aquascapes in Bengaluru.
+            </p>
+          </div>
         </motion.div>
       </div>
     </section>

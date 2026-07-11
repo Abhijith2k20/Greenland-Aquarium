@@ -173,55 +173,6 @@ img {
   transform: translateY(-2px);
 }
 
-.cursor-dot,
-.cursor-ring {
-  pointer-events: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  border-radius: 999px;
-  z-index: 9999;
-  will-change: transform;
-}
-
-html.custom-cursor-active,
-html.custom-cursor-active * {
-  cursor: none !important;
-}
-
-@media (hover: none), (pointer: coarse) {
-  .cursor-dot,
-  .cursor-ring {
-    display: none !important;
-  }
-}
-
-.cursor-dot {
-  width: 8px;
-  height: 8px;
-  background: white;
-}
-
-.cursor-ring {
-  width: 36px;
-  height: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  transition: width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
-}
-
-.cursor-ring.is-hover {
-  width: 64px;
-  height: 64px;
-  opacity: 0.55;
-}
-
-@media (max-width: 768px), (pointer: coarse) {
-  .cursor-dot,
-  .cursor-ring {
-    display: none;
-  }
-}
-
 .wave-path {
   animation: waveDrift 10s ease-in-out infinite alternate;
   transform-origin: center bottom;
@@ -693,7 +644,214 @@ html.custom-cursor-active * {
 
 
 
-/* —— Hero CTAs: liquid-glass dive + waterline visit —— */
+/* —— Hero bottom rail: CTAs left, copy right —— */
+.hero-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  width: 100%;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .hero-rail {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2.5rem;
+    text-align: left;
+  }
+}
+
+.hero-rail__copy {
+  max-width: 22rem;
+}
+
+@media (min-width: 768px) {
+  .hero-rail__copy {
+    max-width: 24rem;
+    text-align: right;
+    margin-left: auto;
+  }
+}
+
+.hero-rail__tagline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.hero-rail__lede {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@media (min-width: 768px) {
+  .hero-rail__lede {
+    font-size: 0.875rem;
+    margin-left: auto;
+  }
+}
+
+.hero-rail__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .hero-rail__actions {
+    align-items: flex-start;
+  }
+}
+
+/* Premium fill-reveal CTA */
+.hero-rail__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1.1rem;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 1rem 1.35rem 1rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  color: #f7fafc;
+  text-decoration: none;
+  background: transparent;
+  transition: color 0.45s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.45s ease;
+}
+
+.hero-rail__btn-fill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(115deg, #f4fbff 0%, #d9eef7 45%, #cfeadb 100%);
+  transform: translate3d(-101%, 0, 0);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-rail__btn-label,
+.hero-rail__btn-arrow {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-rail__btn-label {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hero-rail__btn-arrow {
+  display: inline-flex;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-rail__btn:hover,
+.hero-rail__btn:focus-visible {
+  color: #061018;
+  border-color: transparent;
+  outline: none;
+}
+
+.hero-rail__btn:hover .hero-rail__btn-fill,
+.hero-rail__btn:focus-visible .hero-rail__btn-fill {
+  transform: translate3d(0, 0, 0);
+}
+
+.hero-rail__btn:hover .hero-rail__btn-arrow,
+.hero-rail__btn:focus-visible .hero-rail__btn-arrow {
+  transform: translate(2px, -2px);
+}
+
+.hero-rail__btn:focus-visible {
+  outline: 1px solid rgba(232, 244, 248, 0.65);
+  outline-offset: 4px;
+}
+
+.hero-rail__link {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.3rem;
+  margin-left: 0.1rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.hero-rail__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.25);
+  transform: scaleX(1);
+  transform-origin: left center;
+  transition: background 0.35s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-rail__link:hover,
+.hero-rail__link:focus-visible {
+  color: #fff;
+  outline: none;
+}
+
+.hero-rail__link:hover::after,
+.hero-rail__link:focus-visible::after {
+  background: linear-gradient(90deg, #7ec8f0, #6ed9a8);
+}
+
+.hero-rail__link:focus-visible {
+  outline: 1px solid rgba(79, 195, 247, 0.6);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rail__btn,
+  .hero-rail__btn-fill,
+  .hero-rail__btn-arrow,
+  .hero-rail__link,
+  .hero-rail__link::after {
+    transition: none;
+  }
+
+  .hero-rail__btn-fill {
+    transform: none;
+    opacity: 0;
+  }
+
+  .hero-rail__btn:hover .hero-rail__btn-fill,
+  .hero-rail__btn:focus-visible .hero-rail__btn-fill {
+    opacity: 1;
+  }
+
+  .hero-rail__btn:hover .hero-rail__btn-arrow,
+  .hero-rail__btn:focus-visible .hero-rail__btn-arrow {
+    transform: none;
+  }
+}
+
+/* —— Shared liquid-glass dive (nav / custom section) —— */
 .hero-cta {
   display: flex;
   flex-direction: column;
@@ -739,7 +897,6 @@ html.custom-cursor-active * {
   }
 }
 
-/* Compact glass CTA for navbar */
 .hero-cta__dive--nav {
   gap: 0.4rem;
   padding: 0.5rem 0.9rem 0.5rem 1rem;
@@ -844,7 +1001,7 @@ html.custom-cursor-active * {
 }
 
 .hero-cta__dive:hover .hero-cta__arrow {
-  transform: translateX(4px);
+  transform: translate(3px, -3px);
 }
 
 .hero-cta__visit {
@@ -899,7 +1056,7 @@ html.custom-cursor-active * {
 
 .hero-cta__visit:hover .hero-cta__visit-icon {
   opacity: 1;
-  transform: translateX(3px);
+  transform: translate(2px, -2px);
 }
 
 @media (prefers-reduced-motion: reduce) {
