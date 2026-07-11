@@ -98,59 +98,62 @@ export default function Navbar() {
     >
       <div className="section-pad relative z-[70]">
         <nav
-          className={`mx-auto flex max-w-7xl items-center gap-2 rounded-full px-3 py-2.5 transition-all duration-500 sm:gap-3 sm:px-5 sm:py-3 ${pillTone}`}
+          className={`nav-pill mx-auto flex max-w-7xl items-center transition-all duration-500 ${pillTone}`}
         >
           <AppLink
             to="/"
-            className="group flex shrink-0 items-center gap-2"
+            className="group flex h-10 w-10 shrink-0 items-center justify-center lg:h-9 lg:w-auto lg:justify-start lg:gap-2"
             data-cursor="hover"
             onClick={closeMenu}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-green text-sm font-bold text-[#041018]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-green text-sm font-bold leading-none text-[#041018] lg:h-9 lg:w-9">
               GA
             </span>
-            <span className="hidden truncate font-display text-lg font-semibold tracking-tight lg:inline">
+            <span className="hidden truncate font-display text-lg font-semibold leading-none tracking-tight lg:inline">
               {store?.name || 'Greenland Aquarium'}
             </span>
           </AppLink>
 
-          {/* Mobile: search lives inside the same pill — one chrome, not two */}
           {!isLg && (
-            <div className="min-w-0 flex-1">
-              <NavSearch className="nav-search--in-pill" />
+            <div className="flex h-10 min-w-0 items-center">
+              <NavSearch className="nav-search--in-pill w-full" />
             </div>
           )}
 
-          <div className="ml-auto hidden min-w-0 items-center gap-4 lg:flex">
-            {NAV_LINKS.map((link) => (
-              <AppLink
-                key={link.href}
-                href={link.href}
-                className="shrink-0 text-sm text-white/70 transition hover:text-white"
-                data-cursor="hover"
-              >
-                {link.label}
-              </AppLink>
-            ))}
-            <SocialLinks
-              socials={store?.socials}
-              iconSize={15}
-              linkClassName={socialLinkClass}
-            />
-            {isLg && <NavSearch className="nav-search--desktop" />}
-          </div>
+          {isLg && (
+            <div className="ml-auto flex min-w-0 items-center gap-4">
+              {NAV_LINKS.map((link) => (
+                <AppLink
+                  key={link.href}
+                  href={link.href}
+                  className="shrink-0 text-sm text-white/70 transition hover:text-white"
+                  data-cursor="hover"
+                >
+                  {link.label}
+                </AppLink>
+              ))}
+              <SocialLinks
+                socials={store?.socials}
+                iconSize={15}
+                linkClassName={socialLinkClass}
+              />
+              <NavSearch className="nav-search--desktop" />
+            </div>
+          )}
 
-          <button
-            type="button"
-            className="relative z-[70] flex h-9 w-9 shrink-0 items-center justify-center lg:hidden"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            data-cursor="hover"
-          >
-            {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {!isLg && (
+            <button
+              type="button"
+              className="relative z-[70] flex h-10 w-10 shrink-0 items-center justify-center"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              aria-controls="mobile-nav"
+              data-cursor="hover"
+            >
+              {open ? <X size={22} strokeWidth={2} /> : <Menu size={22} strokeWidth={2} />}
+            </button>
+          )}
         </nav>
       </div>
 
