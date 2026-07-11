@@ -541,6 +541,27 @@ html.custom-cursor-active * {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* Compact search nested inside the mobile nav pill */
+.nav-search--in-pill .nav-search__field {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0 0.25rem 0 0.75rem;
+}
+
+.nav-search--in-pill .nav-search__input {
+  padding: 0.55rem 0;
+  font-size: 0.8125rem;
+}
+
+.nav-search--in-pill .nav-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.nav-search--in-pill .nav-search__submit {
+  width: 1.85rem;
+  height: 1.85rem;
+}
+
 .nav-search--mobile .nav-search__field {
   background: rgba(7, 9, 11, 0.72);
   backdrop-filter: blur(20px) saturate(1.4);

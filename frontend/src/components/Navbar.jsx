@@ -98,26 +98,30 @@ export default function Navbar() {
     >
       <div className="section-pad relative z-[70]">
         <nav
-          className={`mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-full px-4 py-3 transition-all duration-500 sm:px-5 ${pillTone}`}
+          className={`mx-auto flex max-w-7xl items-center gap-2 rounded-full px-3 py-2.5 transition-all duration-500 sm:gap-3 sm:px-5 sm:py-3 ${pillTone}`}
         >
           <AppLink
             to="/"
-            className="group flex min-w-0 items-center gap-2"
+            className="group flex shrink-0 items-center gap-2"
             data-cursor="hover"
             onClick={closeMenu}
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-green text-sm font-bold text-[#041018]">
               GA
             </span>
-            <span className="hidden truncate font-display text-lg font-semibold tracking-tight sm:inline">
+            <span className="hidden truncate font-display text-lg font-semibold tracking-tight lg:inline">
               {store?.name || 'Greenland Aquarium'}
-            </span>
-            <span className="truncate font-display text-base font-semibold tracking-tight sm:hidden">
-              Greenland
             </span>
           </AppLink>
 
-          <div className="hidden min-w-0 flex-1 items-center justify-end gap-4 lg:flex">
+          {/* Mobile: search lives inside the same pill — one chrome, not two */}
+          {!isLg && (
+            <div className="min-w-0 flex-1">
+              <NavSearch className="nav-search--in-pill" />
+            </div>
+          )}
+
+          <div className="ml-auto hidden min-w-0 items-center gap-4 lg:flex">
             {NAV_LINKS.map((link) => (
               <AppLink
                 key={link.href}
@@ -136,26 +140,18 @@ export default function Navbar() {
             {isLg && <NavSearch className="nav-search--desktop" />}
           </div>
 
-          <div className="flex items-center gap-2 lg:hidden">
-            <button
-              type="button"
-              className="relative z-[70] flex h-9 w-9 items-center justify-center"
-              onClick={() => setOpen((v) => !v)}
-              aria-label={open ? 'Close menu' : 'Open menu'}
-              aria-expanded={open}
-              aria-controls="mobile-nav"
-              data-cursor="hover"
-            >
-              {open ? <X size={22} /> : <Menu size={22} />}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="relative z-[70] flex h-9 w-9 shrink-0 items-center justify-center lg:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            data-cursor="hover"
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </nav>
-
-        {!isLg && (
-          <div className="mx-auto mt-2 max-w-7xl">
-            <NavSearch className="nav-search--mobile" />
-          </div>
-        )}
       </div>
 
       <AnimatePresence>
@@ -181,7 +177,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
-              className="section-pad fixed inset-x-0 top-[8.5rem] z-[70] lg:hidden"
+              className="section-pad fixed inset-x-0 top-[5.25rem] z-[70] lg:hidden"
             >
               <div className="glass rounded-3xl p-4 shadow-xl shadow-black/40">
                 <div className="flex flex-col">

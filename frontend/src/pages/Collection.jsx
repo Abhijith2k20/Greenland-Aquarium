@@ -53,7 +53,7 @@ export default function Collection() {
     }`
 
   return (
-    <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-36 md:pt-28">
+    <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-28">
       <div className="section-pad mx-auto max-w-7xl">
         <div className="mb-6 sm:mb-8">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
