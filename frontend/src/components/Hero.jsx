@@ -1,13 +1,67 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowUpRight, MapPin } from 'lucide-react'
 import gsap from 'gsap'
 import Bubbles from './Bubbles'
-import MagneticButton from './MagneticButton'
 import { STORE } from '../data/content'
 import { useContent } from '../context/ContentContext'
+import { prepareRouteChange } from '../lib/prepareRouteChange'
+import { scrollToSection } from '../lib/lenisBridge'
+import { useMagnetic } from '../hooks/useMagnetic'
 import heroDesktop from '../assets/hero-desktop.jpg'
 import heroTablet from '../assets/hero-tablet.png'
 import heroMobile from '../assets/hero-mobile.png'
+
+function HeroDiveCta({ to, children }) {
+  const navigate = useNavigate()
+  const ref = useMagnetic(0.22)
+
+  return (
+    <a
+      ref={ref}
+      href={to}
+      data-cursor="hover"
+      className="hero-cta__dive"
+      onClick={(e) => {
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+        e.preventDefault()
+        prepareRouteChange()
+        navigate(to)
+      }}
+    >
+      <span className="hero-cta__ripple" aria-hidden />
+      <span className="hero-cta__ripple hero-cta__ripple--delay" aria-hidden />
+      <span className="hero-cta__label">{children}</span>
+      <ArrowUpRight className="hero-cta__arrow" size={16} strokeWidth={2.25} aria-hidden />
+    </a>
+  )
+}
+
+function HeroVisitCta({ href, children }) {
+  const navigate = useNavigate()
+  const id = href.replace(/^#/, '')
+
+  return (
+    <a
+      href={href}
+      data-cursor="hover"
+      className="hero-cta__visit"
+      onClick={(e) => {
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+        e.preventDefault()
+        prepareRouteChange()
+        navigate({ pathname: '/', hash: href })
+        window.setTimeout(() => scrollToSection(id, { offset: -90 }), 60)
+      }}
+    >
+      <MapPin size={14} className="opacity-60" aria-hidden />
+      <span>{children}</span>
+      <ArrowUpRight className="hero-cta__visit-icon" size={14} strokeWidth={2} aria-hidden />
+      <span className="hero-cta__wave" aria-hidden />
+    </a>
+  )
+}
 
 export default function Hero() {
   const sectionRef = useRef(null)
@@ -78,7 +132,6 @@ export default function Hero() {
       id="hero"
       className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-black"
     >
-      {/* Art-directed hero: 9:16 mobile → 4:3 tablet → wide desktop */}
       <div className="absolute inset-0 flex items-center justify-center">
         <picture className="flex h-full w-full items-center justify-center">
           <source media="(min-width: 1024px)" srcSet={heroDesktop} />
@@ -93,7 +146,6 @@ export default function Hero() {
         </picture>
       </div>
 
-      {/* Soft vignette — light so artwork stays bright */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.15)_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/35 to-transparent md:h-28" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/40 via-black/10 to-transparent md:h-36" />
@@ -102,18 +154,16 @@ export default function Hero() {
         <Bubbles count={4} />
       </div>
 
-      {/* Accessible heading (visually hidden — brand is in the artwork) */}
       <h1 className="sr-only">
         {name} — {tagline}
       </h1>
 
-      {/* Overlay UI — compact on mobile so it doesn't cover the fish */}
       <div className="section-pad relative z-20 flex min-h-[100svh] w-full max-w-[1400px] flex-col items-center justify-end pb-10 pt-24 md:pb-20 md:pt-28">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.75 }}
-          className="mb-6 max-w-[300px] text-center md:mb-8 md:max-w-md"
+          className="mb-7 max-w-[300px] text-center md:mb-9 md:max-w-md"
         >
           <p className="font-display text-lg font-semibold tracking-tight text-white md:text-xl">
             {tagline}
@@ -127,22 +177,10 @@ export default function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.05, duration: 0.75 }}
-          className="flex w-full max-w-[340px] flex-row items-center justify-center gap-2.5 sm:max-w-none sm:gap-3"
+          className="hero-cta"
         >
-          <MagneticButton
-            to="/collection"
-            variant="solid"
-            className="min-w-0 flex-1 justify-center px-3 py-2.5 text-xs sm:flex-none sm:px-6 sm:py-3 sm:text-sm sm:min-w-[148px]"
-          >
-            Explore Collection
-          </MagneticButton>
-          <MagneticButton
-            href="#visit"
-            variant="ghost"
-            className="min-w-0 flex-1 justify-center border-white/25 bg-white/[0.04] px-3 py-2.5 text-xs backdrop-blur-sm sm:flex-none sm:px-6 sm:py-3 sm:text-sm sm:min-w-[148px]"
-          >
-            Visit Store
-          </MagneticButton>
+          <HeroDiveCta to="/collection">Dive into collection</HeroDiveCta>
+          <HeroVisitCta href="#visit">Visit the store</HeroVisitCta>
         </motion.div>
       </div>
     </section>

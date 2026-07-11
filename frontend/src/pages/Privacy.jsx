@@ -7,7 +7,7 @@ export default function Privacy() {
   const whatsapp = store?.whatsapp
 
   return (
-    <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-28">
+    <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-36 md:pt-28">
       <article className="section-pad mx-auto max-w-3xl">
         <p className="mb-3 text-xs uppercase tracking-[0.28em] text-white/40">Legal</p>
         <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">

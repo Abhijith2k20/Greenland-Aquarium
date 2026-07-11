@@ -7,6 +7,7 @@ import { useContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
 import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
+import NavSearch from './NavSearch'
 import { scrollToSection } from '../lib/lenisBridge'
 
 function goTo(navigate, href) {
@@ -29,10 +30,21 @@ function goTo(navigate, href) {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const [isLg, setIsLg] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1024px)').matches : false,
+  )
   const { store } = useContent()
   const location = useLocation()
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const update = () => setIsLg(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     let ticking = false
@@ -67,12 +79,16 @@ export default function Navbar() {
     e.preventDefault()
     e.stopPropagation()
     closeMenu()
-    // Wait for menu close + body overflow unlock before scrolling
     window.setTimeout(() => goTo(navigate, href), 120)
   }
 
   const socialLinkClass =
     'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-white/30 hover:text-white'
+
+  const pillTone =
+    scrolled || !isHome
+      ? 'border border-white/10 bg-[#07090b]/85 shadow-lg shadow-black/30 backdrop-blur-[6px]'
+      : 'bg-transparent'
 
   return (
     <header
@@ -82,27 +98,31 @@ export default function Navbar() {
     >
       <div className="section-pad relative z-[70]">
         <nav
-          className={`mx-auto flex max-w-7xl items-center justify-between rounded-full px-5 py-3 transition-all duration-500 ${
-            scrolled || !isHome
-              ? 'border border-white/10 bg-[#07090b]/85 shadow-lg shadow-black/30 backdrop-blur-[6px]'
-              : 'bg-transparent'
-          }`}
+          className={`mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-full px-4 py-3 transition-all duration-500 sm:px-5 ${pillTone}`}
         >
-          <AppLink to="/" className="group flex items-center gap-2" data-cursor="hover" onClick={closeMenu}>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue to-green text-sm font-bold text-[#041018]">
+          <AppLink
+            to="/"
+            className="group flex min-w-0 items-center gap-2"
+            data-cursor="hover"
+            onClick={closeMenu}
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-green text-sm font-bold text-[#041018]">
               GA
             </span>
-            <span className="font-display text-lg font-semibold tracking-tight">
+            <span className="hidden truncate font-display text-lg font-semibold tracking-tight sm:inline">
               {store?.name || 'Greenland Aquarium'}
+            </span>
+            <span className="truncate font-display text-base font-semibold tracking-tight sm:hidden">
+              Greenland
             </span>
           </AppLink>
 
-          <div className="hidden items-center gap-6 md:flex">
+          <div className="hidden min-w-0 flex-1 items-center justify-end gap-4 lg:flex">
             {NAV_LINKS.map((link) => (
               <AppLink
                 key={link.href}
                 href={link.href}
-                className="text-sm text-white/70 transition hover:text-white"
+                className="shrink-0 text-sm text-white/70 transition hover:text-white"
                 data-cursor="hover"
               >
                 {link.label}
@@ -113,27 +133,44 @@ export default function Navbar() {
               iconSize={15}
               linkClassName={socialLinkClass}
             />
+            {isLg && <NavSearch className="nav-search--desktop" />}
             <AppLink
               href="/#visit"
-              className="nav-cta rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-95"
+              className="nav-cta shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-95"
               data-cursor="hover"
             >
               Visit Store
             </AppLink>
           </div>
 
-          <button
-            type="button"
-            className="relative z-[70] md:hidden"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            data-cursor="hover"
-          >
-            {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          <div className="flex items-center gap-2 lg:hidden">
+            <AppLink
+              href="/#visit"
+              className="nav-cta hidden rounded-full px-3 py-1.5 text-xs font-semibold sm:inline-flex"
+              data-cursor="hover"
+              onClick={closeMenu}
+            >
+              Visit
+            </AppLink>
+            <button
+              type="button"
+              className="relative z-[70] flex h-9 w-9 items-center justify-center"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              aria-controls="mobile-nav"
+              data-cursor="hover"
+            >
+              {open ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </nav>
+
+        {!isLg && (
+          <div className="mx-auto mt-2 max-w-7xl">
+            <NavSearch className="nav-search--mobile" />
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -146,7 +183,7 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[65] bg-black/60 md:hidden"
+              className="fixed inset-0 z-[65] bg-black/60 lg:hidden"
               onClick={closeMenu}
             />
             <motion.div
@@ -159,7 +196,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
-              className="section-pad fixed inset-x-0 top-[4.5rem] z-[70] md:hidden"
+              className="section-pad fixed inset-x-0 top-[8.5rem] z-[70] lg:hidden"
             >
               <div className="glass rounded-3xl p-4 shadow-xl shadow-black/40">
                 <div className="flex flex-col">

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { Search, X, MessageCircle } from 'lucide-react'
 import { COLLECTION_CATEGORIES } from '../data/content'
 import { useContent } from '../context/ContentContext'
@@ -8,10 +8,24 @@ export default function Collection() {
   const content = useContent()
   const collection = Array.isArray(content.collection) ? content.collection : []
   const store = content.store || {}
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('q') || '')
+  const searchInputRef = useRef(null)
 
   const category = searchParams.get('category') || 'All'
+
+  useEffect(() => {
+    if (location.state?.focusSearch) {
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select?.()
+    }
+  }, [location.state])
+
+  useEffect(() => {
+    const fromUrl = searchParams.get('q') || ''
+    setSearch((prev) => (prev === fromUrl ? prev : fromUrl))
+  }, [searchParams])
 
   const filterCategories = useMemo(() => {
     const fromCms = [
@@ -66,7 +80,7 @@ export default function Collection() {
     }`
 
   return (
-    <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-24 md:pt-28">
+    <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-36 md:pt-28">
       <div className="section-pad mx-auto max-w-7xl">
         <div className="mb-8 sm:mb-10">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
@@ -80,6 +94,7 @@ export default function Collection() {
         <label className="mb-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0a0e11] px-4 py-3.5 sm:mb-6">
           <Search size={18} className="shrink-0 text-blue" aria-hidden />
           <input
+            ref={searchInputRef}
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
