@@ -20,7 +20,9 @@ export default function FeaturedFish() {
   const phone = store?.phoneRaw || '919611269901'
   const [active, setActive] = useState(0)
   const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches
+      : false,
   )
 
   const trackRef = useRef(null)
@@ -46,7 +48,9 @@ export default function FeaturedFish() {
   }
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)')
+    // Sticky morph only on real desktop — tablets/phones stay on the simple carousel
+    // so vertical page scroll never feels "stuck" inside a tall sticky track.
+    const mq = window.matchMedia('(min-width: 1024px) and (pointer: fine)')
     const sync = () => setIsDesktop(mq.matches)
     sync()
     mq.addEventListener('change', sync)
@@ -208,7 +212,7 @@ export default function FeaturedFish() {
         className={
           isDesktop
             ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-16 lg:py-20'
-            : 'relative py-28'
+            : 'relative py-20 sm:py-24'
         }
       >
         <section id="featured" className="relative">
@@ -233,7 +237,11 @@ export default function FeaturedFish() {
 
           <div
             ref={stripRef}
-            className="flex h-[320px] gap-3 overflow-x-auto overscroll-x-contain px-[clamp(1.25rem,4vw,5rem)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] touch-pan-x snap-x snap-mandatory sm:h-[360px] md:h-[420px] md:gap-3 md:overflow-visible md:overscroll-auto md:touch-auto md:snap-none lg:h-[460px] [&::-webkit-scrollbar]:hidden"
+            className={
+              isDesktop
+                ? 'flex h-[460px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2'
+                : 'flex h-[320px] gap-3 overflow-x-auto px-[clamp(1.25rem,4vw,5rem)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory sm:h-[360px] [&::-webkit-scrollbar]:hidden'
+            }
           >
             {items.map((fish, i) => {
               const isActive = i === active
@@ -259,10 +267,10 @@ export default function FeaturedFish() {
                   data-cursor="hover"
                   aria-pressed={isActive}
                   aria-label={`${fish.name} — featured item`}
-                  className={`featured-panel relative h-full shrink-0 cursor-pointer snap-center overflow-hidden rounded-[1.5rem] text-left contain-paint md:snap-align-none ${
+                  className={`featured-panel relative h-full shrink-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint ${
                     isDesktop
                       ? 'flex-[1_1_0%]'
-                      : 'w-[min(68vw,260px)] transition-[flex] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]'
+                      : 'w-[min(68vw,260px)] snap-center transition-[flex] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]'
                   }`}
                   style={
                     isDesktop
