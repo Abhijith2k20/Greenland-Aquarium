@@ -89,7 +89,7 @@ After setting `VITE_SITE_URL`, update `frontend/public/robots.txt` and `frontend
 6. Add the production URL to Sanity CORS
 7. Update `public/robots.txt` and `public/sitemap.xml` (`REPLACE_WITH_DOMAIN`)
 
-SPA routes (`/collection`, `/privacy`) are handled by `public/_redirects` for Cloudflare Pages.
+SPA routes (`/collection`, `/privacy`) are handled by `wrangler.toml` → `not_found_handling = "single-page-application"` (no `_redirects` file — that conflicts with Workers deploy).
 
 ## Contact form
 
