@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useSearchParams } from 'react-router-dom'
-import { Search, X, MessageCircle } from 'lucide-react'
+import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { MessageCircle } from 'lucide-react'
 import { COLLECTION_CATEGORIES } from '../data/content'
 import { useContent } from '../context/ContentContext'
 
@@ -8,24 +8,10 @@ export default function Collection() {
   const content = useContent()
   const collection = Array.isArray(content.collection) ? content.collection : []
   const store = content.store || {}
-  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [search, setSearch] = useState(searchParams.get('q') || '')
-  const searchInputRef = useRef(null)
 
   const category = searchParams.get('category') || 'All'
-
-  useEffect(() => {
-    if (location.state?.focusSearch) {
-      searchInputRef.current?.focus()
-      searchInputRef.current?.select?.()
-    }
-  }, [location.state])
-
-  useEffect(() => {
-    const fromUrl = searchParams.get('q') || ''
-    setSearch((prev) => (prev === fromUrl ? prev : fromUrl))
-  }, [searchParams])
+  const search = searchParams.get('q') || ''
 
   const filterCategories = useMemo(() => {
     const fromCms = [
@@ -39,20 +25,8 @@ export default function Collection() {
     const next = new URLSearchParams(searchParams)
     if (!value || value === 'All') next.delete('category')
     else next.set('category', value)
-    if (search.trim()) next.set('q', search.trim())
-    else next.delete('q')
     setSearchParams(next, { replace: true })
   }
-
-  useEffect(() => {
-    const current = searchParams.get('q') || ''
-    const nextQ = search.trim()
-    if (current === nextQ) return
-    const next = new URLSearchParams(searchParams)
-    if (nextQ) next.set('q', nextQ)
-    else next.delete('q')
-    setSearchParams(next, { replace: true })
-  }, [search, searchParams, setSearchParams])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -66,7 +40,6 @@ export default function Collection() {
   }, [collection, search, category])
 
   const clearAll = () => {
-    setSearch('')
     setSearchParams({}, { replace: true })
   }
 
@@ -82,32 +55,20 @@ export default function Collection() {
   return (
     <div className="page-enter relative z-10 min-h-screen bg-[#07090b] pb-20 pt-36 md:pt-28">
       <div className="section-pad mx-auto max-w-7xl">
-        <div className="mb-8 sm:mb-10">
+        <div className="mb-6 sm:mb-8">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
             Collection
           </h1>
           <p className="mt-2 max-w-md text-sm text-white/45 sm:text-base">
             Browse fish, plants, aquariums & supplies available at our Horamavu store.
+            {search.trim() ? (
+              <>
+                {' '}
+                Showing results for <span className="text-white/70">“{search.trim()}”</span>.
+              </>
+            ) : null}
           </p>
         </div>
-
-        <label className="mb-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0a0e11] px-4 py-3.5 sm:mb-6">
-          <Search size={18} className="shrink-0 text-blue" aria-hidden />
-          <input
-            ref={searchInputRef}
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name…"
-            aria-label="Search collection"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-white/30"
-          />
-          {search && (
-            <button type="button" onClick={() => setSearch('')} aria-label="Clear search">
-              <X size={15} className="text-white/35 hover:text-white" />
-            </button>
-          )}
-        </label>
 
         <div
           className="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -157,7 +118,11 @@ export default function Collection() {
 
           <div>
             {content.loading ? (
-              <div className="collection-grid grid list-none gap-3 sm:gap-4" aria-busy="true" aria-label="Loading collection">
+              <div
+                className="collection-grid grid list-none gap-3 sm:gap-4"
+                aria-busy="true"
+                aria-label="Loading collection"
+              >
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}

@@ -87,8 +87,8 @@ export default function Navbar() {
 
   const pillTone =
     scrolled || !isHome
-      ? 'border border-white/10 bg-[#07090b]/85 shadow-lg shadow-black/30 backdrop-blur-[6px]'
-      : 'bg-transparent'
+      ? 'border border-transparent bg-[#07090b]/70 shadow-lg shadow-black/30 backdrop-blur-xl backdrop-saturate-150'
+      : 'border border-transparent bg-transparent'
 
   return (
     <header
@@ -134,24 +134,9 @@ export default function Navbar() {
               linkClassName={socialLinkClass}
             />
             {isLg && <NavSearch className="nav-search--desktop" />}
-            <AppLink
-              href="/#visit"
-              className="nav-cta shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-95"
-              data-cursor="hover"
-            >
-              Visit Store
-            </AppLink>
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <AppLink
-              href="/#visit"
-              className="nav-cta hidden rounded-full px-3 py-1.5 text-xs font-semibold sm:inline-flex"
-              data-cursor="hover"
-              onClick={closeMenu}
-            >
-              Visit
-            </AppLink>
             <button
               type="button"
               className="relative z-[70] flex h-9 w-9 items-center justify-center"
@@ -211,14 +196,6 @@ export default function Navbar() {
                       {link.label}
                     </a>
                   ))}
-                  <a
-                    href="/#visit"
-                    onClick={onMobileNav('/#visit')}
-                    className="nav-cta mt-1 rounded-full px-3 py-3 text-center text-base font-semibold"
-                    data-cursor="hover"
-                  >
-                    Visit Store
-                  </a>
                   <SocialLinks
                     socials={store?.socials}
                     className="mt-4 justify-center border-t border-white/10 pt-4"

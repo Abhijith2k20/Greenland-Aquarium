@@ -1,4 +1,4 @@
-import MagneticButton from './MagneticButton'
+import { ArrowUpRight } from 'lucide-react'
 import experienceBg from '../assets/experience-bg.jpg'
 import { useContent } from '../context/ContentContext'
 
@@ -33,9 +33,18 @@ export default function CustomAquarium() {
           Immersive custom tanks with living plants, cinematic lighting, and species chosen for
           balance and beauty.
         </p>
-        <MagneticButton href={href} target="_blank" rel="noreferrer" className="mt-10">
-          Design Your Dream Aquarium
-        </MagneticButton>
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          data-cursor="hover"
+          className="hero-cta__dive mt-10"
+        >
+          <span className="hero-cta__ripple" aria-hidden />
+          <span className="hero-cta__ripple hero-cta__ripple--delay" aria-hidden />
+          <span className="hero-cta__label">Design Your Dream Aquarium</span>
+          <ArrowUpRight className="hero-cta__arrow" size={16} strokeWidth={2.25} aria-hidden />
+        </a>
       </div>
     </section>
   )
