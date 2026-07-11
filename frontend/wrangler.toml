@@ -1,4 +1,9 @@
-# Cloudflare Pages — used by `npx wrangler pages deploy dist`
+# Cloudflare Pages
 name = "greenlandaquarium"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "dist"
+
+# Fallback if deploy command is still `wrangler deploy`
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
