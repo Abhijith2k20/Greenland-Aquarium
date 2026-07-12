@@ -207,7 +207,7 @@ export default function Navbar() {
                     target="_blank"
                     rel="noreferrer"
                     data-cursor="hover"
-                    className="hero-cta__dive hero-cta__dive--nav"
+                    className="hero-cta__dive hero-cta__dive--nav hero-cta__dive--whatsapp"
                     onClick={closeMenu}
                   >
                     <span className="hero-cta__ripple" aria-hidden />
