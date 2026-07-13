@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { useContent } from '../context/ContentContext'
-import { scrollToY } from '../lib/lenisBridge'
 import setupImg from '../assets/services/setup.jpg'
 import aquascapeImg from '../assets/services/aquascape.jpg'
 import maintenanceImg from '../assets/services/maintenance.jpg'
@@ -12,10 +11,19 @@ const SERVICE_IMAGES = {
   3: maintenanceImg,
 }
 
-const SERVICE_ACCENTS = {
-  1: { glow: 'rgba(79, 195, 247, 0.1)', tint: '#4fc3f7' },
-  2: { glow: 'rgba(46, 204, 113, 0.08)', tint: '#2ecc71' },
-  3: { glow: 'rgba(126, 200, 240, 0.08)', tint: '#7ec8f0' },
+const SERVICE_META = {
+  1: {
+    tint: '#4fc3f7',
+    includes: ['Site visit & layout plan', 'Equipment sizing', 'Cycling guidance'],
+  },
+  2: {
+    tint: '#2ecc71',
+    includes: ['Hardscape composition', 'Plant selection', 'Finish styling'],
+  },
+  3: {
+    tint: '#7ec8f0',
+    includes: ['Water changes', 'Filter care', 'Health check-ins'],
+  },
 }
 
 function serviceEnquireUrl(phone, title) {
@@ -24,71 +32,93 @@ function serviceEnquireUrl(phone, title) {
   )}`
 }
 
+function clamp(n, min, max) {
+  return Math.min(max, Math.max(min, n))
+}
+
 export default function Services() {
   const { services, store } = useContent()
   const items = Array.isArray(services) ? services.slice(0, 3) : []
   const phone = store?.phoneRaw || '919611269901'
   const trackRef = useRef(null)
-  const stageRef = useRef(null)
+  const cardRefs = useRef([])
+  const activeRef = useRef(0)
   const [active, setActive] = useState(0)
   const [reduced, setReduced] = useState(false)
-  const [narrow, setNarrow] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
-  )
-  const activeRef = useRef(0)
-  const userLockUntil = useRef(0)
 
   useEffect(() => {
-    const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const narrowMq = window.matchMedia('(max-width: 767px)')
-    const sync = () => {
-      setReduced(motionMq.matches)
-      setNarrow(narrowMq.matches)
-    }
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync = () => setReduced(mq.matches)
     sync()
-    motionMq.addEventListener('change', sync)
-    narrowMq.addEventListener('change', sync)
-    return () => {
-      motionMq.removeEventListener('change', sync)
-      narrowMq.removeEventListener('change', sync)
-    }
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
   }, [])
 
   useEffect(() => {
     if (reduced || items.length < 2) return undefined
 
     const track = trackRef.current
-    const stage = stageRef.current
-    if (!track || !stage) return undefined
+    if (!track) return undefined
 
     let raf = 0
-    const onScroll = () => {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        const total = Math.max(1, track.offsetHeight - window.innerHeight)
-        const top = track.getBoundingClientRect().top
-        const scrolled = Math.min(total, Math.max(0, -top))
-        const progress = scrolled / total
-        const idx = Math.min(items.length - 1, Math.round(progress * (items.length - 1)))
+    const update = () => {
+      raf = 0
+      const rect = track.getBoundingClientRect()
+      const total = Math.max(1, track.offsetHeight - window.innerHeight)
+      const scrolled = clamp(-rect.top, 0, total)
+      const progress = scrolled / total
+      const steps = items.length - 1
+      const exact = progress * steps
+      const idx = clamp(Math.round(exact), 0, steps)
 
-        stage.style.setProperty('--services-progress', String(progress))
-        stage.dataset.active = String(idx)
+      if (idx !== activeRef.current) {
+        activeRef.current = idx
+        setActive(idx)
+      }
 
-        if (idx !== activeRef.current && Date.now() >= userLockUntil.current) {
-          activeRef.current = idx
-          const accent = SERVICE_ACCENTS[items[idx]?.id] || SERVICE_ACCENTS[1]
-          stage.style.setProperty('--services-glow', accent.glow)
-          stage.style.setProperty('--services-tint', accent.tint)
-          setActive(idx)
+      cardRefs.current.forEach((card, i) => {
+        if (!card) return
+        const local = exact - i
+        let y = 0
+        let scale = 1
+        let opacity = 1
+
+        if (local < -1) {
+          y = 110
+          opacity = 0
+          scale = 1
+        } else if (local < 0) {
+          const t = local + 1
+          y = (1 - t) * 110
+          opacity = 0.35 + t * 0.65
+          scale = 0.92 + t * 0.08
+        } else if (local < 1) {
+          y = 0
+          scale = 1 - local * 0.06
+          opacity = 1 - local * 0.35
+        } else {
+          y = 0
+          scale = 0.94
+          opacity = 0
         }
+
+        card.style.transform = `translate3d(0, ${y}%, 0) scale(${scale})`
+        card.style.opacity = String(opacity)
+        card.style.zIndex = String(i + 1)
       })
     }
 
-    onScroll()
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(update)
+    }
+
+    update()
     window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
     return () => {
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [items, reduced])
@@ -97,37 +127,37 @@ export default function Services() {
 
   if (reduced) {
     return (
-      <section id="services" className="section-pad relative overflow-hidden py-28 md:py-36">
-        <div className="relative z-10 mx-auto max-w-7xl">
-          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-green">Services</p>
-          <h2 className="mb-14 font-display text-4xl font-semibold tracking-tight md:text-6xl">
+      <section id="services" className="section-pad relative py-20 md:py-28">
+        <div className="mx-auto max-w-7xl">
+          <p className="mb-3 text-xs uppercase tracking-[0.3em] text-green">Services</p>
+          <h2 className="mb-10 font-display text-4xl font-semibold tracking-tight md:text-5xl">
             Crafted care, end to end.
           </h2>
-          <div className="grid gap-10 md:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-3">
             {items.map((service) => {
               const src = SERVICE_IMAGES[service.id]
               return (
-                <div key={service.id}>
+                <article key={service.id}>
                   {src ? (
                     <img
                       src={src}
                       alt={service.imageAlt || ''}
-                      className="aspect-square w-full rounded-2xl object-cover"
+                      className="aspect-[4/3] w-full rounded-2xl object-cover"
                       loading="lazy"
                     />
                   ) : null}
                   <h3 className="mt-5 font-display text-2xl font-semibold">{service.title}</h3>
-                  <p className="mt-3 text-white/55">{service.description}</p>
+                  <p className="mt-2 text-sm text-white/55">{service.description}</p>
                   <a
                     href={serviceEnquireUrl(phone, service.title)}
                     target="_blank"
                     rel="noreferrer"
-                    className="services-cta mt-5"
+                    className="services-stack__cta mt-4"
                   >
-                    <MessageCircle size={15} strokeWidth={2} aria-hidden />
+                    <MessageCircle size={15} aria-hidden />
                     Enquire on WhatsApp
                   </a>
-                </div>
+                </article>
               )
             })}
           </div>
@@ -136,191 +166,89 @@ export default function Services() {
     )
   }
 
-  const goTo = (i) => {
-    const track = trackRef.current
-    if (!track) return
-    userLockUntil.current = Date.now() + 700
-    activeRef.current = i
-    setActive(i)
-    if (items.length < 2) return
-    const total = Math.max(1, track.offsetHeight - window.innerHeight)
-    const top =
-      track.getBoundingClientRect().top + window.scrollY + (i / (items.length - 1)) * total
-    scrollToY(top)
-  }
-
   const activeItem = items[active] || items[0]
+  const activeMeta = SERVICE_META[activeItem.id] || SERVICE_META[1]
 
   return (
-    <section id="services" className="relative bg-[#050505]">
+    <section
+      id="services"
+      className="services-scroll relative bg-[var(--bg)]"
+      style={{ '--svc-tint': activeMeta.tint }}
+    >
       <div
         ref={trackRef}
-        className="services-track"
-        style={{
-          height: `calc(100svh + ${(items.length - 1) * (narrow ? 52 : 90)}svh)`,
-        }}
+        className="services-scroll__track"
+        style={{ height: `${items.length * 100}svh` }}
       >
-        <div className={`services-sticky ${narrow ? 'services-sticky--mobile' : ''}`}>
-          <div
-            ref={stageRef}
-            className="services-canvas"
-            data-active="0"
-            style={{
-              '--services-progress': 0,
-              '--services-pos': 0,
-              '--services-glow': SERVICE_ACCENTS[1].glow,
-              '--services-tint': SERVICE_ACCENTS[1].tint,
-            }}
-          >
-            <div className="services-canvas__glow" aria-hidden />
+        <div className="services-scroll__sticky">
+          <div className="section-pad mx-auto flex h-full max-w-7xl flex-col py-8 md:py-12">
+            <header className="services-scroll__intro">
+              <p className="services-scroll__eyebrow">Services</p>
+              <h2 className="services-scroll__heading">Crafted care, end to end.</h2>
+            </header>
 
-            {narrow ? (
-              <div className="services-m">
-                <header className="services-m__head">
-                  <p className="services-m__eyebrow">Services</p>
-                  <h2 className="services-m__kicker">Crafted care, end to end.</h2>
-                </header>
-
-                <div className="services-m__stage">
-                  {items.map((service, i) => {
-                    const src = SERVICE_IMAGES[service.id]
-                    return (
-                      <div
-                        key={service.id}
-                        className={`services-m__shot ${i === active ? 'is-active' : ''}`}
-                        aria-hidden={i !== active}
-                      >
-                        {src ? (
-                          <img
-                            src={src}
-                            alt={service.imageAlt || ''}
-                            className="services-m__img"
-                            loading={i === 0 ? 'eager' : 'lazy'}
-                            decoding="async"
-                            draggable={false}
-                          />
-                        ) : (
-                          <div className="services-m__fallback" />
-                        )}
-                      </div>
-                    )
-                  })}
-
-                  <div className="services-m__veil" aria-hidden />
-                  <div className="services-m__tint" aria-hidden />
-
-                  <nav className="services-m__spine" aria-label="Services">
-                    {items.map((service, i) => (
-                      <button
-                        key={service.id}
-                        type="button"
-                        className={`services-m__tick ${i === active ? 'is-active' : ''}`}
-                        aria-current={i === active ? 'true' : undefined}
-                        onClick={() => goTo(i)}
-                      >
-                        <span className="services-m__tick-mark" aria-hidden />
-                        <span className="services-m__tick-label">{service.title}</span>
-                      </button>
-                    ))}
-                  </nav>
-
-                  <div className="services-m__copy">
-                    <h3 className="services-m__title">{activeItem.title}</h3>
-                    <p className="services-m__desc">{activeItem.description}</p>
-                    <a
-                      href={serviceEnquireUrl(phone, activeItem.title)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="services-cta services-cta--mobile"
-                    >
-                      <MessageCircle size={14} strokeWidth={2} aria-hidden />
-                      Enquire on WhatsApp
-                    </a>
-                    <div className="services-m__progress" aria-hidden>
-                      <span
-                        className="services-m__progress-fill"
-                        style={{ width: `${((active + 1) / items.length) * 100}%` }}
-                      />
+            <div className="services-scroll__stage">
+              {items.map((service, i) => {
+                const meta = SERVICE_META[service.id] || SERVICE_META[1]
+                const src = SERVICE_IMAGES[service.id]
+                return (
+                  <article
+                    key={service.id}
+                    ref={(el) => {
+                      cardRefs.current[i] = el
+                    }}
+                    className="services-scroll__card"
+                    style={{ '--svc-tint': meta.tint }}
+                    aria-hidden={i !== active}
+                  >
+                    <div className="services-scroll__media">
+                      {src ? (
+                        <img
+                          src={src}
+                          alt={service.imageAlt || ''}
+                          className="services-scroll__img"
+                          loading={i === 0 ? 'eager' : 'lazy'}
+                          decoding="async"
+                          draggable={false}
+                        />
+                      ) : (
+                        <div className="services-scroll__fallback" />
+                      )}
+                      <div className="services-scroll__veil" aria-hidden />
                     </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="section-pad relative z-10 mx-auto flex h-full max-w-7xl flex-col py-20 md:py-24">
-                <header className="services-header">
-                  <p className="services-header__eyebrow">Services</p>
-                  <h2 className="services-header__title">Crafted care, end to end.</h2>
-                </header>
 
-                <div className="services-layout">
-                  <div className="services-copy">
-                    {items.map((service, i) => (
-                      <article
-                        key={service.id}
-                        className={`services-card ${i === active ? 'is-active' : ''}`}
-                        aria-hidden={i !== active}
+                    <div className="services-scroll__body">
+                      <h3 className="services-scroll__title">{service.title}</h3>
+                      <p className="services-scroll__desc">{service.description}</p>
+                      <ul className="services-scroll__includes">
+                        {meta.includes.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                      <a
+                        href={serviceEnquireUrl(phone, service.title)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="services-scroll__cta"
+                        tabIndex={i === active ? 0 : -1}
                       >
-                        <h3 className="services-card__title">{service.title}</h3>
-                        <p className="services-card__desc">{service.description}</p>
-                        {i === active ? (
-                          <a
-                            href={serviceEnquireUrl(phone, service.title)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="services-cta"
-                          >
-                            <MessageCircle size={15} strokeWidth={2} aria-hidden />
-                            Enquire on WhatsApp
-                          </a>
-                        ) : null}
-                      </article>
-                    ))}
+                        <MessageCircle size={16} strokeWidth={2} aria-hidden />
+                        Enquire on WhatsApp
+                      </a>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
 
-                    <nav className="services-rail" aria-label="Services">
-                      {items.map((service, i) => (
-                        <button
-                          key={service.id}
-                          type="button"
-                          className={`services-rail__item ${i === active ? 'is-active' : ''}`}
-                          aria-current={i === active ? 'true' : undefined}
-                          onClick={() => goTo(i)}
-                        >
-                          <span className="services-rail__line" aria-hidden />
-                          <span className="services-rail__name">{service.title}</span>
-                        </button>
-                      ))}
-                    </nav>
-                  </div>
-
-                  <div className="services-frame">
-                    <div className="services-frame__sheen" aria-hidden />
-                    {items.map((service, i) => {
-                      const src = SERVICE_IMAGES[service.id]
-                      return (
-                        <div
-                          key={service.id}
-                          className={`services-shot ${i === active ? 'is-active' : ''}`}
-                          aria-hidden={i !== active}
-                        >
-                          {src ? (
-                            <img
-                              src={src}
-                              alt={service.imageAlt || ''}
-                              className="services-shot__img"
-                              loading={i === 0 ? 'eager' : 'lazy'}
-                              decoding="async"
-                              draggable={false}
-                            />
-                          ) : (
-                            <div className="services-shot__fallback" />
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="services-scroll__dots" aria-hidden>
+              {items.map((service, i) => (
+                <span
+                  key={service.id}
+                  className={`services-scroll__dot${i === active ? ' is-active' : ''}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
