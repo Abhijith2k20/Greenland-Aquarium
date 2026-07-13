@@ -14,28 +14,35 @@ function flexForDist(dist) {
   return 1.35 + (0.55 - 1.35) * (dist - 1)
 }
 
+/** Slightly tighter morph on narrow screens so 3 cards still fit. */
+function flexForDistMobile(dist) {
+  if (dist >= 2) return 0.42
+  if (dist <= 0) return 2.35
+  if (dist <= 1) return 2.35 + (1.05 - 2.35) * dist
+  return 1.05 + (0.42 - 1.05) * (dist - 1)
+}
+
 export default function FeaturedFish() {
   const { featuredFish, store } = useContent()
   const items = (featuredFish || []).slice(0, CARD_COUNT)
   const phone = store?.phoneRaw || '919611269901'
   const [active, setActive] = useState(0)
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches
-      : false,
+  const [reduced, setReduced] = useState(false)
+  const [narrow, setNarrow] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
   )
 
   const trackRef = useRef(null)
-  const stripRef = useRef(null)
   const panelRefs = useRef([])
   const activeRef = useRef(0)
   const userLockUntil = useRef(0)
-  const scrollingStrip = useRef(false)
   const rafRef = useRef(0)
 
   const lockUser = (ms = 1200) => {
     userLockUntil.current = Date.now() + ms
   }
+
+  const flexFn = narrow ? flexForDistMobile : flexForDist
 
   const syncPanelAttrs = (idx) => {
     panelRefs.current.forEach((el, i) => {
@@ -48,18 +55,24 @@ export default function FeaturedFish() {
   }
 
   useEffect(() => {
-    // Sticky morph only on real desktop — tablets/phones stay on the simple carousel
-    // so vertical page scroll never feels "stuck" inside a tall sticky track.
-    const mq = window.matchMedia('(min-width: 1024px) and (pointer: fine)')
-    const sync = () => setIsDesktop(mq.matches)
+    const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const narrowMq = window.matchMedia('(max-width: 767px)')
+    const sync = () => {
+      setReduced(motionMq.matches)
+      setNarrow(narrowMq.matches)
+    }
     sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
+    motionMq.addEventListener('change', sync)
+    narrowMq.addEventListener('change', sync)
+    return () => {
+      motionMq.removeEventListener('change', sync)
+      narrowMq.removeEventListener('change', sync)
+    }
   }, [])
 
-  // Desktop: sticky track — morph flex via DOM only; avoid React re-renders on scroll
+  // Sticky track scroll morph — desktop + mobile (disabled only for reduced motion)
   useEffect(() => {
-    if (!isDesktop || items.length < 2) return undefined
+    if (reduced || items.length < 2) return undefined
 
     const track = trackRef.current
     if (!track) return undefined
@@ -70,10 +83,11 @@ export default function FeaturedFish() {
       const scrolled = Math.min(total, Math.max(0, -top))
       const progress = scrolled / total
       const pos = progress * (items.length - 1)
+      const grow = narrow ? flexForDistMobile : flexForDist
 
       panelRefs.current.forEach((el, i) => {
         if (!el) return
-        el.style.flexGrow = String(flexForDist(Math.abs(i - pos)))
+        el.style.flexGrow = String(grow(Math.abs(i - pos)))
       })
 
       const idx = Math.min(items.length - 1, Math.round(pos))
@@ -95,8 +109,6 @@ export default function FeaturedFish() {
     apply()
     syncPanelAttrs(activeRef.current)
 
-    // Native scroll + Lenis (RAF-deduped). Attach both so morph stays in sync
-    // even if Lenis mounts after this section.
     window.addEventListener('scroll', onScroll, { passive: true })
 
     let lenis = getLenisInstance()
@@ -120,50 +132,7 @@ export default function FeaturedFish() {
       window.clearTimeout(stopAttach)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [isDesktop, items.length])
-
-  // Mobile: sync active from horizontal snap
-  useEffect(() => {
-    if (isDesktop) return undefined
-    const strip = stripRef.current
-    if (!strip) return undefined
-
-    let settleTimer = 0
-
-    const pickCentered = () => {
-      const mid = strip.scrollLeft + strip.clientWidth / 2
-      const panels = [...strip.querySelectorAll('[data-index]')]
-      let best = 0
-      let bestDist = Infinity
-      panels.forEach((panel) => {
-        const center = panel.offsetLeft + panel.offsetWidth / 2
-        const d = Math.abs(center - mid)
-        if (d < bestDist) {
-          bestDist = d
-          best = Number(panel.dataset.index)
-        }
-      })
-      if (best !== activeRef.current) {
-        activeRef.current = best
-        setActive(best)
-      }
-    }
-
-    const onScroll = () => {
-      scrollingStrip.current = true
-      window.clearTimeout(settleTimer)
-      settleTimer = window.setTimeout(() => {
-        scrollingStrip.current = false
-        pickCentered()
-      }, 80)
-    }
-
-    strip.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      strip.removeEventListener('scroll', onScroll)
-      window.clearTimeout(settleTimer)
-    }
-  }, [isDesktop, items.length])
+  }, [reduced, items.length, narrow])
 
   if (!items.length) {
     return (
@@ -180,7 +149,6 @@ export default function FeaturedFish() {
             to="/collection"
             onClick={() => prepareRouteChange()}
             className="mt-6 inline-block text-sm text-blue transition hover:underline"
-            data-cursor="hover"
           >
             View full collection →
           </Link>
@@ -190,6 +158,7 @@ export default function FeaturedFish() {
   }
 
   const steps = Math.max(1, items.length - 1)
+  const useSticky = !reduced
 
   const goToCard = (i) => {
     lockUser()
@@ -197,22 +166,12 @@ export default function FeaturedFish() {
     setActive(i)
     syncPanelAttrs(i)
 
-    if (isDesktop) {
-      panelRefs.current.forEach((el, j) => {
-        if (!el) return
-        el.style.flexGrow = String(flexForDist(Math.abs(j - i)))
-      })
-    }
+    panelRefs.current.forEach((el, j) => {
+      if (!el) return
+      el.style.flexGrow = String(flexFn(Math.abs(j - i)))
+    })
 
-    if (!isDesktop) {
-      const strip = stripRef.current
-      const panel = strip?.querySelector(`[data-index="${i}"]`)
-      if (strip && panel) {
-        const left = panel.offsetLeft - (strip.clientWidth - panel.offsetWidth) / 2
-        strip.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
-      }
-      return
-    }
+    if (!useSticky) return
 
     const track = trackRef.current
     if (!track || items.length < 2) return
@@ -228,18 +187,18 @@ export default function FeaturedFish() {
     <div
       ref={trackRef}
       className="relative"
-      style={isDesktop ? { height: `${100 + steps * 90}vh` } : undefined}
+      style={useSticky ? { height: `${100 + steps * (narrow ? 75 : 90)}vh` } : undefined}
     >
       <div
         className={
-          isDesktop
-            ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-16 lg:py-20'
+          useSticky
+            ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-14 sm:py-16 lg:py-20'
             : 'relative py-20 sm:py-24'
         }
       >
         <section id="featured" className="relative">
           <div className="section-pad mx-auto max-w-7xl">
-            <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
+            <div className="mb-7 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
               <div className="max-w-2xl">
                 <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">Featured</p>
                 <h2 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">
@@ -250,7 +209,6 @@ export default function FeaturedFish() {
                 to="/collection"
                 onClick={() => prepareRouteChange()}
                 className="text-sm text-blue transition hover:underline"
-                data-cursor="hover"
               >
                 View full collection →
               </Link>
@@ -258,12 +216,9 @@ export default function FeaturedFish() {
           </div>
 
           <div
-            ref={stripRef}
-            className={
-              isDesktop
-                ? 'flex h-[460px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2'
-                : 'flex h-[320px] gap-3 overflow-x-auto px-[clamp(1.25rem,4vw,5rem)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory sm:h-[360px] [&::-webkit-scrollbar]:hidden'
-            }
+            className={`featured-strip flex gap-2 overflow-visible px-[clamp(1rem,4vw,5rem)] pb-2 sm:gap-3 ${
+              narrow ? 'h-[300px]' : 'h-[400px] lg:h-[460px]'
+            }`}
           >
             {items.map((fish, i) => {
               const isActive = i === active
@@ -286,18 +241,13 @@ export default function FeaturedFish() {
                     }
                   }}
                   tabIndex={0}
-                  data-cursor="hover"
                   aria-label={`${fish.name} — featured item${isActive ? '' : ', select to expand'}`}
-                  className={`featured-panel relative h-full shrink-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint ${
-                    isDesktop
-                      ? 'flex-[1_1_0%]'
-                      : 'w-[min(68vw,260px)] snap-center transition-[flex] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]'
-                  }`}
-                  style={
-                    isDesktop
-                      ? { flexGrow: flexForDist(Math.abs(i - active)), flexBasis: 0 }
-                      : undefined
-                  }
+                  className="featured-panel relative h-full min-w-0 cursor-pointer overflow-hidden rounded-[1.25rem] text-left contain-paint sm:rounded-[1.5rem]"
+                  style={{
+                    flexGrow: flexFn(Math.abs(i - active)),
+                    flexBasis: 0,
+                    flexShrink: 1,
+                  }}
                 >
                   <img
                     src={fish.image}
@@ -309,13 +259,15 @@ export default function FeaturedFish() {
                   />
                   <div className="featured-panel__shade pointer-events-none absolute inset-0" />
 
-                  <div className="featured-panel__near pointer-events-none absolute inset-x-0 bottom-0 p-4">
-                    <p className="mt-1 font-display text-base font-semibold text-white">{fish.name}</p>
+                  <div className="featured-panel__near pointer-events-none absolute inset-x-0 bottom-0 p-3 sm:p-4">
+                    <p className="mt-1 font-display text-sm font-semibold text-white sm:text-base">
+                      {fish.name}
+                    </p>
                   </div>
 
-                  <div className="featured-panel__far pointer-events-none absolute inset-0 flex items-end p-4">
+                  <div className="featured-panel__far pointer-events-none absolute inset-0 flex items-end p-3 sm:p-4">
                     <span
-                      className="font-display text-sm font-semibold text-white"
+                      className="font-display text-xs font-semibold text-white sm:text-sm"
                       style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
                     >
                       {fish.name}
@@ -323,19 +275,19 @@ export default function FeaturedFish() {
                   </div>
 
                   <div
-                    className="featured-panel__detail absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6"
+                    className="featured-panel__detail absolute inset-x-0 bottom-0 p-3.5 sm:p-5 lg:p-6"
                     aria-hidden={!isActive}
                   >
-                    <h3 className="pointer-events-none font-display text-xl font-semibold tracking-tight text-white sm:text-2xl lg:text-3xl">
+                    <h3 className="pointer-events-none font-display text-lg font-semibold tracking-tight text-white sm:text-2xl lg:text-3xl">
                       {fish.name}
                     </h3>
                     {fish.subtitle && (
-                      <p className="pointer-events-none mt-2 text-sm italic text-white/50">
+                      <p className="pointer-events-none mt-1.5 text-xs italic text-white/50 sm:mt-2 sm:text-sm">
                         {fish.subtitle}
                       </p>
                     )}
                     {fish.description && (
-                      <p className="pointer-events-none mt-2 line-clamp-2 text-sm text-white/60">
+                      <p className="pointer-events-none mt-2 hidden text-sm text-white/60 sm:line-clamp-2 sm:block">
                         {fish.description}
                       </p>
                     )}

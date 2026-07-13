@@ -266,18 +266,21 @@ export const SERVICES = [
     title: 'Custom Tank Setup',
     description:
       'From nano tanks to statement aquariums — designed, built, and balanced for your space.',
+    imageAlt: 'Custom aquarium tank setup',
   },
   {
     id: 2,
     title: 'Aquascaping',
     description:
       'Artistic underwater landscapes with plants, driftwood, and stone compositions.',
+    imageAlt: 'Aquascaping with plants and hardscape',
   },
   {
     id: 3,
     title: 'Maintenance',
     description:
       'Scheduled care so your aquarium stays crystal clear and biologically healthy.',
+    imageAlt: 'Person cleaning and maintaining an aquarium',
   },
 ]
 
