@@ -73,12 +73,15 @@ export default function FeaturedFish() {
       const progress = scrolled / total
       const pos = progress * (items.length - 1)
 
-      if (isDesktop) {
-        panelRefs.current.forEach((el, i) => {
-          if (!el) return
+      panelRefs.current.forEach((el, i) => {
+        if (!el) return
+        if (isDesktop) {
           el.style.flexGrow = String(flexForDist(Math.abs(i - pos)))
-        })
-      }
+        } else {
+          const idxRound = Math.round(pos)
+          el.style.flexGrow = String(i === idxRound ? 4.2 : 0.72)
+        }
+      })
 
       const idx = Math.min(items.length - 1, Math.round(pos))
       if (idx !== activeRef.current && Date.now() >= userLockUntil.current) {
@@ -146,11 +149,10 @@ export default function FeaturedFish() {
 
   const steps = Math.max(1, items.length - 1)
   const useSticky = !reduced
-  // Mobile: shorter steps so it doesn’t feel stuck; desktop keeps longer morph distance
   const trackHeight = useSticky
     ? isDesktop
       ? `${100 + steps * 90}vh`
-      : `${100 + steps * 48}svh`
+      : `${100 + steps * 52}svh`
     : undefined
 
   const goToCard = (i) => {
@@ -159,12 +161,14 @@ export default function FeaturedFish() {
     setActive(i)
     syncPanelAttrs(i)
 
-    if (isDesktop) {
-      panelRefs.current.forEach((el, j) => {
-        if (!el) return
+    panelRefs.current.forEach((el, j) => {
+      if (!el) return
+      if (isDesktop) {
         el.style.flexGrow = String(flexForDist(Math.abs(j - i)))
-      })
-    }
+      } else {
+        el.style.flexGrow = String(j === i ? 4.2 : 0.72)
+      }
+    })
 
     if (!useSticky || items.length < 2) return
     const track = trackRef.current
@@ -174,8 +178,6 @@ export default function FeaturedFish() {
       track.getBoundingClientRect().top + window.scrollY + (i / (items.length - 1)) * total
     scrollToY(top)
   }
-
-  const activeFish = items[active] || items[0]
 
   return (
     <div ref={trackRef} className="relative" style={trackHeight ? { height: trackHeight } : undefined}>
@@ -188,7 +190,7 @@ export default function FeaturedFish() {
       >
         <section id="featured" className="relative">
           <div className="section-pad mx-auto max-w-7xl">
-            <div className="mb-6 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
+            <div className="mb-5 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
               <div className="max-w-2xl">
                 <p className="mb-3 text-xs uppercase tracking-[0.3em] text-orange md:mb-4">Featured</p>
                 <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl md:text-6xl">
@@ -205,55 +207,70 @@ export default function FeaturedFish() {
             </div>
           </div>
 
-          {/* Mobile: one spotlight card — lighter & clearer than 3-up flex morph */}
           {!isDesktop ? (
-            <div className="section-pad mx-auto max-w-7xl">
-              <div className="featured-mobile">
-                <div className="featured-mobile__media">
-                  {items.map((fish, i) => (
-                    <img
-                      key={fish.id}
-                      src={fish.image}
-                      alt={fish.name}
-                      className={`featured-mobile__img ${i === active ? 'is-active' : ''}`}
-                      loading={i === 0 ? 'eager' : 'lazy'}
-                      decoding="async"
-                      draggable={false}
-                    />
-                  ))}
-                  <div className="featured-mobile__shade" aria-hidden />
-                  <div className="featured-mobile__body">
-                    <h3 className="featured-mobile__title">{activeFish.name}</h3>
-                    {activeFish.subtitle ? (
-                      <p className="featured-mobile__sub">{activeFish.subtitle}</p>
-                    ) : null}
-                    <a
-                      href={`https://wa.me/${phone}?text=${encodeURIComponent(
-                        `Hi Greenland Aquarium, I'm interested in the ${activeFish.name}.`,
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="featured-mobile__cta"
-                    >
-                      <MessageCircle size={14} color="#000000" />
-                      WhatsApp
-                    </a>
-                  </div>
-                </div>
-
-                <div className="featured-mobile__dots" role="tablist" aria-label="Featured species">
-                  {items.map((fish, i) => (
+            <div className="featured-m">
+              <div className="featured-m__strip">
+                {items.map((fish, i) => {
+                  const isActive = i === active
+                  return (
                     <button
                       key={fish.id}
                       type="button"
-                      role="tab"
-                      aria-selected={i === active}
-                      aria-label={fish.name}
-                      className={`featured-mobile__dot ${i === active ? 'is-active' : ''}`}
+                      data-index={i}
+                      data-active={isActive ? 'true' : 'false'}
+                      ref={(el) => {
+                        panelRefs.current[i] = el
+                      }}
                       onClick={() => goToCard(i)}
-                    />
-                  ))}
-                </div>
+                      aria-label={`${fish.name}${isActive ? '' : ', select to expand'}`}
+                      aria-pressed={isActive}
+                      className="featured-m__panel"
+                      style={{
+                        flexGrow: isActive ? 4.2 : 0.72,
+                        flexBasis: 0,
+                        flexShrink: 1,
+                      }}
+                    >
+                      <img
+                        src={fish.image}
+                        alt=""
+                        className="featured-m__img"
+                        loading={i === 0 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        draggable={false}
+                      />
+                      <div className="featured-m__shade" aria-hidden />
+
+                      <span className="featured-m__spine-name" aria-hidden={isActive}>
+                        {fish.name}
+                      </span>
+
+                      <div className="featured-m__detail" aria-hidden={!isActive}>
+                        <h3 className="featured-m__title">{fish.name}</h3>
+                        {fish.subtitle ? <p className="featured-m__sub">{fish.subtitle}</p> : null}
+                        <a
+                          href={`https://wa.me/${phone}?text=${encodeURIComponent(
+                            `Hi Greenland Aquarium, I'm interested in the ${fish.name}.`,
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          tabIndex={isActive ? 0 : -1}
+                          onClick={(e) => e.stopPropagation()}
+                          className="featured-m__cta"
+                        >
+                          <MessageCircle size={13} color="#000000" />
+                          WhatsApp
+                        </a>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="featured-m__rail" aria-hidden>
+                {items.map((_, i) => (
+                  <span key={i} className={`featured-m__rail-seg ${i === active ? 'is-active' : ''}`} />
+                ))}
               </div>
             </div>
           ) : (
