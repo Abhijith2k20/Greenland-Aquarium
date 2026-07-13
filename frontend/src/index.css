@@ -434,9 +434,7 @@ img {
   inset: 0;
   border: 0;
   padding: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.72);
   cursor: pointer;
 }
 
@@ -453,6 +451,8 @@ img {
   border-bottom: 0;
   background: #0c1014;
   box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.45);
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 @media (min-width: 768px) {
@@ -492,10 +492,8 @@ img {
   justify-content: center;
   border: 0;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.55);
   color: #fff;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 .product-sheet__media {

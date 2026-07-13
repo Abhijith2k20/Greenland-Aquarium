@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MessageCircle, X } from 'lucide-react'
@@ -10,19 +10,11 @@ function enquireUrl(phone, item) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
 }
 
+const reducedMotion =
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export default function ProductSheet({ item, phone, onClose }) {
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
-  )
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)')
-    const update = () => setIsDesktop(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-
   useEffect(() => {
     if (!item) return undefined
     const prev = document.body.style.overflow
@@ -37,20 +29,6 @@ export default function ProductSheet({ item, phone, onClose }) {
     }
   }, [item, onClose])
 
-  const panelMotion = isDesktop
-    ? {
-        initial: { opacity: 0, scale: 0.96, y: 12 },
-        animate: { opacity: 1, scale: 1, y: 0 },
-        exit: { opacity: 0, scale: 0.96, y: 8 },
-        transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
-      }
-    : {
-        initial: { y: '100%' },
-        animate: { y: 0 },
-        exit: { y: '100%' },
-        transition: { type: 'spring', damping: 28, stiffness: 320 },
-      }
-
   return createPortal(
     <AnimatePresence>
       {item ? (
@@ -62,7 +40,7 @@ export default function ProductSheet({ item, phone, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: reducedMotion ? 0 : 0.18 }}
             onClick={onClose}
           />
 
@@ -71,7 +49,14 @@ export default function ProductSheet({ item, phone, onClose }) {
             aria-modal="true"
             aria-labelledby="product-sheet-title"
             className="product-sheet"
-            {...panelMotion}
+            initial={reducedMotion ? false : { y: '100%' }}
+            animate={{ y: 0 }}
+            exit={reducedMotion ? { opacity: 0 } : { y: '100%' }}
+            transition={
+              reducedMotion
+                ? { duration: 0 }
+                : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
+            }
           >
             <div className="product-sheet__handle" aria-hidden />
 
@@ -85,7 +70,12 @@ export default function ProductSheet({ item, phone, onClose }) {
             </button>
 
             <div className="product-sheet__media">
-              <img src={item.image} alt={item.name} decoding="async" />
+              <img
+                src={item.image}
+                alt={item.name}
+                decoding="async"
+                fetchPriority="high"
+              />
             </div>
 
             <div className="product-sheet__body">
