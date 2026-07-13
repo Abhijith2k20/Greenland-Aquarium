@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { MessageCircle, X } from 'lucide-react'
@@ -28,9 +28,88 @@ function useIsDesktop() {
   return desktop
 }
 
+/**
+ * Lean sheet: only 2 animated layers (scrim opacity + panel transform).
+ * No staggered children, no drag listeners, no scale.
+ */
 export default function ProductSheet({ item, phone, onClose }) {
   const reduced = useReducedMotion()
   const desktop = useIsDesktop()
+  const open = Boolean(item)
+
+  const waHref = useMemo(
+    () => (item ? enquireUrl(phone, item) : '#'),
+    [item, phone],
+  )
+
+  const variants = useMemo(() => {
+    if (reduced) {
+      return {
+        root: {
+          open: { transition: { staggerChildren: 0 } },
+          closed: { transition: { staggerChildren: 0, when: 'afterChildren' } },
+        },
+        scrim: {
+          open: { opacity: 1, transition: { duration: 0.12 } },
+          closed: { opacity: 0, transition: { duration: 0.1 } },
+        },
+        panel: {
+          open: { opacity: 1, transition: { duration: 0.12 } },
+          closed: { opacity: 0, transition: { duration: 0.1 } },
+        },
+      }
+    }
+
+    if (desktop) {
+      return {
+        root: {
+          open: { transition: { staggerChildren: 0.02 } },
+          closed: {
+            transition: { staggerChildren: 0.02, staggerDirection: -1, when: 'afterChildren' },
+          },
+        },
+        scrim: {
+          open: { opacity: 1, transition: { duration: 0.28, ease: 'easeOut' } },
+          closed: { opacity: 0, transition: { duration: 0.22, ease: 'easeOut' } },
+        },
+        panel: {
+          open: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+          },
+          closed: {
+            opacity: 0,
+            y: 16,
+            transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] },
+          },
+        },
+      }
+    }
+
+    return {
+      root: {
+        open: { transition: { staggerChildren: 0.02 } },
+        closed: {
+          transition: { staggerChildren: 0.02, staggerDirection: -1, when: 'afterChildren' },
+        },
+      },
+      scrim: {
+        open: { opacity: 1, transition: { duration: 0.28, ease: 'easeOut' } },
+        closed: { opacity: 0, transition: { duration: 0.22, ease: 'easeOut' } },
+      },
+      panel: {
+        open: {
+          y: 0,
+          transition: { duration: 0.34, ease: [0.32, 0.72, 0, 1] },
+        },
+        closed: {
+          y: '100%',
+          transition: { duration: 0.28, ease: [0.32, 0.72, 0, 1] },
+        },
+      },
+    }
+  }, [desktop, reduced])
 
   useEffect(() => {
     return () => {
@@ -39,37 +118,14 @@ export default function ProductSheet({ item, phone, onClose }) {
   }, [])
 
   useEffect(() => {
-    if (!item) return undefined
+    if (!open) return undefined
     document.body.style.overflow = 'hidden'
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [item, onClose])
-
-  const sheetMotion = reduced
-    ? {
-        initial: false,
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-        transition: { duration: 0.1 },
-      }
-    : desktop
-      ? {
-          initial: { opacity: 0, scale: 0.96, y: 10 },
-          animate: { opacity: 1, scale: 1, y: 0 },
-          exit: { opacity: 1, scale: 1, y: 0 },
-          transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] },
-        }
-      : {
-          initial: { y: '100%' },
-          animate: { y: 0 },
-          exit: { y: '100%' },
-          transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] },
-        }
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
   return createPortal(
     <AnimatePresence
@@ -77,26 +133,21 @@ export default function ProductSheet({ item, phone, onClose }) {
         document.body.style.overflow = ''
       }}
     >
-      {item ? (
+      {open ? (
         <motion.div
-          key={item.id}
+          key="product-sheet"
           className={`product-sheet-root${desktop ? ' product-sheet-root--desktop' : ''}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: desktop || reduced ? 0 : 1 }}
-          transition={
-            reduced
-              ? { duration: 0.08 }
-              : desktop
-                ? { duration: 0.15, ease: 'easeOut' }
-                : { duration: 0.22, ease: [0.32, 0.72, 0, 1] }
-          }
+          variants={variants.root}
+          initial="closed"
+          animate="open"
+          exit="closed"
         >
-          <button
+          <motion.button
             type="button"
             aria-label="Close product details"
             className="product-sheet-scrim"
             onClick={onClose}
+            variants={variants.scrim}
           />
 
           <motion.div
@@ -104,7 +155,7 @@ export default function ProductSheet({ item, phone, onClose }) {
             aria-modal="true"
             aria-labelledby="product-sheet-title"
             className="product-sheet"
-            {...sheetMotion}
+            variants={variants.panel}
           >
             <div className="product-sheet__handle" aria-hidden />
 
@@ -122,7 +173,8 @@ export default function ProductSheet({ item, phone, onClose }) {
                 src={item.image}
                 alt={item.name}
                 decoding="async"
-                fetchPriority="high"
+                loading="eager"
+                draggable={false}
               />
             </div>
 
@@ -145,7 +197,9 @@ export default function ProductSheet({ item, phone, onClose }) {
                   ₹{Number(item.price).toLocaleString('en-IN')}
                 </p>
               ) : (
-                <p className="product-sheet__price product-sheet__price--ask">Price on request</p>
+                <p className="product-sheet__price product-sheet__price--ask">
+                  Price on request
+                </p>
               )}
 
               {item.description ? (
@@ -153,15 +207,11 @@ export default function ProductSheet({ item, phone, onClose }) {
               ) : null}
 
               <p className="product-sheet__note">
-                Available at our Horamavu store. Message us on WhatsApp to confirm stock and reserve.
+                Available at our Horamavu store. Message us on WhatsApp to confirm stock and
+                reserve.
               </p>
 
-              <a
-                href={enquireUrl(phone, item)}
-                target="_blank"
-                rel="noreferrer"
-                className="product-sheet__cta"
-              >
+              <a href={waHref} target="_blank" rel="noreferrer" className="product-sheet__cta">
                 <MessageCircle size={18} strokeWidth={2} aria-hidden />
                 Enquire on WhatsApp
               </a>

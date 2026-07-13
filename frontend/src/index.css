@@ -1193,7 +1193,7 @@ img {
   border-bottom: 0;
   background: #0c1014;
   box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.4);
-  will-change: transform, opacity;
+  /* Compositor-friendly; avoid permanent will-change (keeps layer alive) */
   transform: translateZ(0);
   backface-visibility: hidden;
 }
