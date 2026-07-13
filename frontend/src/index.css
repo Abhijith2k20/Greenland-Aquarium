@@ -345,7 +345,7 @@ img {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 2fr 3fr;
   overflow: hidden;
   border-radius: 1.15rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -413,8 +413,8 @@ img {
   justify-content: flex-start;
   gap: 0;
   min-height: 0;
-  overflow: auto;
-  padding: 0.95rem 1rem 1.1rem;
+  overflow: hidden;
+  padding: 0.8rem 0.95rem 0.9rem;
   background:
     linear-gradient(
       165deg,
@@ -433,18 +433,26 @@ img {
 }
 
 .services-scroll__kicker {
-  margin: 0 0 0.4rem;
-  font-size: 0.68rem;
+  margin: 0 0 0.3rem;
+  font-size: 0.62rem;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--svc-tint, #4fc3f7) 90%, white);
+}
+
+@media (min-width: 900px) {
+  .services-scroll__kicker {
+    margin-bottom: 0.55rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+  }
 }
 
 .services-scroll__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.45rem, 5.5vw, 2.85rem);
+  font-size: clamp(1.25rem, 5vw, 2.85rem);
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1.05;
@@ -452,11 +460,15 @@ img {
 }
 
 .services-scroll__desc {
-  margin: 0.55rem 0 0;
+  margin: 0.4rem 0 0;
   max-width: 42ch;
-  font-size: 0.88rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.4;
   color: rgba(255, 255, 255, 0.68);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 @media (min-width: 900px) {
@@ -471,9 +483,9 @@ img {
 }
 
 .services-scroll__panel {
-  margin-top: 0.85rem;
-  padding: 0.8rem 0.9rem;
-  border-radius: 0.9rem;
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.035);
 }
@@ -487,12 +499,20 @@ img {
 }
 
 .services-scroll__panel-label {
-  margin: 0 0 0.65rem;
-  font-size: 0.68rem;
+  margin: 0 0 0.45rem;
+  font-size: 0.6rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.4);
+}
+
+@media (min-width: 900px) {
+  .services-scroll__panel-label {
+    margin-bottom: 0.65rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+  }
 }
 
 .services-scroll__includes {
@@ -501,16 +521,30 @@ img {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.35rem;
+}
+
+@media (min-width: 900px) {
+  .services-scroll__includes {
+    gap: 0.55rem;
+  }
 }
 
 .services-scroll__includes li {
   position: relative;
-  padding-left: 1.15rem;
-  font-size: 0.9rem;
+  padding-left: 1rem;
+  font-size: 0.78rem;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.3;
   color: rgba(255, 255, 255, 0.88);
+}
+
+@media (min-width: 900px) {
+  .services-scroll__includes li {
+    padding-left: 1.15rem;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
 }
 
 .services-scroll__includes li::before {
@@ -529,28 +563,40 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.95rem;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
   width: fit-content;
-  min-height: 2.6rem;
-  padding: 0.7rem 1.2rem;
+  min-height: 2.15rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 999px;
   background: #25d366;
   color: #041018;
-  font-size: 0.86rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
-  box-shadow: 0 10px 28px rgba(37, 211, 102, 0.22);
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.18);
   transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.services-scroll__cta svg {
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 @media (min-width: 900px) {
   .services-scroll__cta {
+    gap: 0.5rem;
     margin-top: 1.6rem;
     min-height: 3.1rem;
     padding: 0.9rem 1.5rem;
     font-size: 0.95rem;
+    box-shadow: 0 10px 28px rgba(37, 211, 102, 0.22);
+  }
+
+  .services-scroll__cta svg {
+    width: 1.125rem;
+    height: 1.125rem;
   }
 }
 
