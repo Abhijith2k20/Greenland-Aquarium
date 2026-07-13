@@ -24,14 +24,25 @@ export default function Services() {
   const stageRef = useRef(null)
   const [active, setActive] = useState(0)
   const [reduced, setReduced] = useState(false)
+  const [narrow, setNarrow] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
+  )
   const activeRef = useRef(0)
 
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const sync = () => setReduced(mq.matches)
+    const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const narrowMq = window.matchMedia('(max-width: 767px)')
+    const sync = () => {
+      setReduced(motionMq.matches)
+      setNarrow(narrowMq.matches)
+    }
     sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
+    motionMq.addEventListener('change', sync)
+    narrowMq.addEventListener('change', sync)
+    return () => {
+      motionMq.removeEventListener('change', sync)
+      narrowMq.removeEventListener('change', sync)
+    }
   }, [])
 
   useEffect(() => {
@@ -125,7 +136,9 @@ export default function Services() {
       <div
         ref={trackRef}
         className="services-track"
-        style={{ height: `${items.length * 100}vh` }}
+        style={{
+          height: `calc(100svh + ${(items.length - 1) * (narrow ? 55 : 90)}svh)`,
+        }}
       >
         <div className="services-sticky">
           <div
@@ -141,67 +154,126 @@ export default function Services() {
           >
             <div className="services-canvas__glow" aria-hidden />
 
-            <div className="section-pad relative z-10 mx-auto flex h-full max-w-7xl flex-col py-20 md:py-24">
+            <div className="section-pad relative z-10 mx-auto flex h-full max-w-7xl flex-col py-14 md:py-24">
               <header className="services-header">
                 <p className="services-header__eyebrow">Services</p>
                 <h2 className="services-header__title">Crafted care, end to end.</h2>
               </header>
 
-              <div className="services-layout">
-                <div className="services-copy">
-                  {items.map((service, i) => (
-                    <article
-                      key={service.id}
-                      className={`services-card ${i === active ? 'is-active' : ''}`}
-                      aria-hidden={i !== active}
-                    >
-                      <h3 className="services-card__title">{service.title}</h3>
-                      <p className="services-card__desc">{service.description}</p>
-                    </article>
-                  ))}
+              <div className={`services-layout ${narrow ? 'services-layout--mobile' : ''}`}>
+                {narrow ? (
+                  <>
+                    <div className="services-frame">
+                      {items.map((service, i) => {
+                        const src = SERVICE_IMAGES[service.id]
+                        return (
+                          <div
+                            key={service.id}
+                            className={`services-shot ${i === active ? 'is-active' : ''}`}
+                            aria-hidden={i !== active}
+                          >
+                            {src ? (
+                              <img
+                                src={src}
+                                alt={service.imageAlt || ''}
+                                className="services-shot__img"
+                                loading={i === 0 ? 'eager' : 'lazy'}
+                                decoding="async"
+                                draggable={false}
+                              />
+                            ) : (
+                              <div className="services-shot__fallback" />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
 
-                  <nav className="services-rail" aria-label="Services">
-                    {items.map((service, i) => (
-                      <button
-                        key={service.id}
-                        type="button"
-                        className={`services-rail__item ${i === active ? 'is-active' : ''}`}
-                        aria-current={i === active ? 'true' : undefined}
-                        onClick={() => goTo(i)}
-                      >
-                        <span className="services-rail__line" aria-hidden />
-                        <span className="services-rail__name">{service.title}</span>
-                      </button>
-                    ))}
-                  </nav>
-                </div>
+                    <div className="services-copy">
+                      {items.map((service, i) => (
+                        <article
+                          key={service.id}
+                          className={`services-card ${i === active ? 'is-active' : ''}`}
+                          aria-hidden={i !== active}
+                        >
+                          <h3 className="services-card__title">{service.title}</h3>
+                          <p className="services-card__desc">{service.description}</p>
+                        </article>
+                      ))}
 
-                <div className="services-frame">
-                  <div className="services-frame__sheen" aria-hidden />
-                  {items.map((service, i) => {
-                    const src = SERVICE_IMAGES[service.id]
-                    return (
-                      <div
-                        key={service.id}
-                        className={`services-shot ${i === active ? 'is-active' : ''}`}
-                        aria-hidden={i !== active}
-                      >
-                        {src ? (
-                          <img
-                            src={src}
-                            alt={service.imageAlt || ''}
-                            className="services-shot__img"
-                            loading={i === 0 ? 'eager' : 'lazy'}
-                            decoding="async"
-                            draggable={false}
-                          />
-                        ) : (
-                          <div className="services-shot__fallback" />
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+                      <nav className="services-rail services-rail--row" aria-label="Services">
+                        {items.map((service, i) => (
+                          <button
+                            key={service.id}
+                            type="button"
+                            className={`services-rail__pill ${i === active ? 'is-active' : ''}`}
+                            aria-current={i === active ? 'true' : undefined}
+                            onClick={() => goTo(i)}
+                          >
+                            {service.title}
+                          </button>
+                        ))}
+                      </nav>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="services-copy">
+                      {items.map((service, i) => (
+                        <article
+                          key={service.id}
+                          className={`services-card ${i === active ? 'is-active' : ''}`}
+                          aria-hidden={i !== active}
+                        >
+                          <h3 className="services-card__title">{service.title}</h3>
+                          <p className="services-card__desc">{service.description}</p>
+                        </article>
+                      ))}
+
+                      <nav className="services-rail" aria-label="Services">
+                        {items.map((service, i) => (
+                          <button
+                            key={service.id}
+                            type="button"
+                            className={`services-rail__item ${i === active ? 'is-active' : ''}`}
+                            aria-current={i === active ? 'true' : undefined}
+                            onClick={() => goTo(i)}
+                          >
+                            <span className="services-rail__line" aria-hidden />
+                            <span className="services-rail__name">{service.title}</span>
+                          </button>
+                        ))}
+                      </nav>
+                    </div>
+
+                    <div className="services-frame">
+                      <div className="services-frame__sheen" aria-hidden />
+                      {items.map((service, i) => {
+                        const src = SERVICE_IMAGES[service.id]
+                        return (
+                          <div
+                            key={service.id}
+                            className={`services-shot ${i === active ? 'is-active' : ''}`}
+                            aria-hidden={i !== active}
+                          >
+                            {src ? (
+                              <img
+                                src={src}
+                                alt={service.imageAlt || ''}
+                                className="services-shot__img"
+                                loading={i === 0 ? 'eager' : 'lazy'}
+                                decoding="async"
+                                draggable={false}
+                              />
+                            ) : (
+                              <div className="services-shot__fallback" />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
