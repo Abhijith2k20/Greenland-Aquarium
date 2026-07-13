@@ -14,14 +14,17 @@ const SERVICE_IMAGES = {
 const SERVICE_META = {
   1: {
     tint: '#4fc3f7',
+    kicker: 'Build',
     includes: ['Site visit & layout plan', 'Equipment sizing', 'Cycling guidance'],
   },
   2: {
     tint: '#2ecc71',
+    kicker: 'Design',
     includes: ['Hardscape composition', 'Plant selection', 'Finish styling'],
   },
   3: {
     tint: '#7ec8f0',
+    kicker: 'Care',
     includes: ['Water changes', 'Filter care', 'Health check-ins'],
   },
 }
@@ -218,13 +221,19 @@ export default function Services() {
                     </div>
 
                     <div className="services-scroll__body">
+                      <p className="services-scroll__kicker">{meta.kicker}</p>
                       <h3 className="services-scroll__title">{service.title}</h3>
                       <p className="services-scroll__desc">{service.description}</p>
-                      <ul className="services-scroll__includes">
-                        {meta.includes.map((line) => (
-                          <li key={line}>{line}</li>
-                        ))}
-                      </ul>
+
+                      <div className="services-scroll__panel">
+                        <p className="services-scroll__panel-label">What’s included</p>
+                        <ul className="services-scroll__includes">
+                          {meta.includes.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      </div>
+
                       <a
                         href={serviceEnquireUrl(phone, service.title)}
                         target="_blank"
@@ -232,7 +241,7 @@ export default function Services() {
                         className="services-scroll__cta"
                         tabIndex={i === active ? 0 : -1}
                       >
-                        <MessageCircle size={16} strokeWidth={2} aria-hidden />
+                        <MessageCircle size={18} strokeWidth={2} aria-hidden />
                         Enquire on WhatsApp
                       </a>
                     </div>

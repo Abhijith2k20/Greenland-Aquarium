@@ -129,7 +129,7 @@ export default function Hero() {
           <img
             src={heroMobile}
             alt="Greenland Aquarium"
-            className="hero-section__img h-full w-full max-w-none object-contain object-center"
+            className="hero-section__img max-w-none object-contain object-center md:h-full md:w-full"
             fetchPriority="high"
             decoding="async"
             draggable={false}
