@@ -249,15 +249,6 @@ export default function Services() {
                 )
               })}
             </div>
-
-            <div className="services-scroll__dots" aria-hidden>
-              {items.map((service, i) => (
-                <span
-                  key={service.id}
-                  className={`services-scroll__dot${i === active ? ' is-active' : ''}`}
-                />
-              ))}
-            </div>
           </div>
         </div>
       </div>
