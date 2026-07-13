@@ -736,10 +736,18 @@ img {
 }
 
 .inspire-card__hint {
-  margin: 0.2rem 0 0;
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  display: inline-flex;
+  align-items: center;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 0;
+  background: transparent;
+  font-size: clamp(0.85rem, 1.3vw, 0.95rem);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.88);
   text-shadow: none;
 }
 
