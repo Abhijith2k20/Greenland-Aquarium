@@ -213,11 +213,6 @@ export default function Services() {
                   </nav>
 
                   <div className="services-m__copy">
-                    <p className="services-m__index" aria-hidden>
-                      <span>{String(active + 1).padStart(2, '0')}</span>
-                      <span className="services-m__index-sep">/</span>
-                      <span>{String(items.length).padStart(2, '0')}</span>
-                    </p>
                     <h3 className="services-m__title">{activeItem.title}</h3>
                     <p className="services-m__desc">{activeItem.description}</p>
                     <div className="services-m__progress" aria-hidden>
