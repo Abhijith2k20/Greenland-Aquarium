@@ -12,25 +12,39 @@ function SectionFallback() {
   return <div className="min-h-[40vh]" aria-hidden />
 }
 
+function Deferred({ children }) {
+  return <div className="home-deferred">{children}</div>
+}
+
 export default function Home() {
   return (
     <>
       <Hero />
       <Categories />
       <Suspense fallback={<SectionFallback />}>
-        <FeaturedFish />
+        <Deferred>
+          <FeaturedFish />
+        </Deferred>
       </Suspense>
       <Suspense fallback={<SectionFallback />}>
-        <CustomAquarium />
+        <Deferred>
+          <CustomAquarium />
+        </Deferred>
       </Suspense>
       <Suspense fallback={<SectionFallback />}>
-        <Services />
+        <Deferred>
+          <Services />
+        </Deferred>
       </Suspense>
       <Suspense fallback={<SectionFallback />}>
-        <Reviews />
+        <Deferred>
+          <Reviews />
+        </Deferred>
       </Suspense>
       <Suspense fallback={<SectionFallback />}>
-        <Visit />
+        <Deferred>
+          <Visit />
+        </Deferred>
       </Suspense>
     </>
   )

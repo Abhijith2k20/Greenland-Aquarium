@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
-import gsap from 'gsap'
 import Bubbles from './Bubbles'
 import { STORE } from '../data/content'
 import { useContent } from '../context/ContentContext'
@@ -58,82 +57,34 @@ function HeroVisitCta({ href, children }) {
 
 export default function Hero() {
   const sectionRef = useRef(null)
-  const imageRef = useRef(null)
   const { store } = useContent()
   const tagline = store?.tagline || STORE.tagline
   const name = store?.name || STORE.name
 
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced) {
-      if (sectionRef.current) sectionRef.current.style.opacity = '1'
-      if (imageRef.current) {
-        imageRef.current.style.opacity = '1'
-        imageRef.current.style.transform = 'none'
-      }
-      return undefined
-    }
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        sectionRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 1.2, ease: 'power2.out' },
-      )
-
-      gsap.fromTo(
-        imageRef.current,
-        { scale: 1.06, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 1.5, ease: 'power3.out', delay: 0.1 },
-      )
-    }, sectionRef)
-
-    const pending = { current: null }
-    const moveRaf = { current: 0 }
-
-    const onMove = (e) => {
-      if (!sectionRef.current || !imageRef.current) return
-      if (window.matchMedia('(max-width: 767px), (pointer: coarse)').matches) return
-
-      const rect = sectionRef.current.getBoundingClientRect()
-      const x = (e.clientX - rect.left) / rect.width - 0.5
-      const y = (e.clientY - rect.top) / rect.height - 0.5
-      pending.current = { x: x * 14, y: y * 10 }
-      if (moveRaf.current) return
-      moveRaf.current = requestAnimationFrame(() => {
-        moveRaf.current = 0
-        const p = pending.current
-        if (imageRef.current && p) {
-          imageRef.current.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`
-        }
-      })
-    }
-
     const el = sectionRef.current
-    el?.addEventListener('mousemove', onMove)
-
-    return () => {
-      ctx.revert()
-      el?.removeEventListener('mousemove', onMove)
-      if (moveRaf.current) cancelAnimationFrame(moveRaf.current)
-    }
+    if (!el) return undefined
+    // Kick CSS enter once after paint
+    const id = requestAnimationFrame(() => el.classList.add('is-ready'))
+    return () => cancelAnimationFrame(id)
   }, [])
 
   return (
     <section
       ref={sectionRef}
       id="hero"
-      className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-black"
+      className="hero-section relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-black"
     >
       <div className="absolute inset-0 flex items-center justify-center">
         <picture className="flex h-full w-full items-center justify-center">
           <source media="(min-width: 1024px)" srcSet={heroDesktop} />
           <source media="(min-width: 768px)" srcSet={heroTablet} />
           <img
-            ref={imageRef}
             src={heroMobile}
             alt="Greenland Aquarium"
-            className="h-full w-full max-w-none object-contain object-center brightness-110"
+            className="hero-section__img h-full w-full max-w-none object-contain object-center"
+            fetchPriority="high"
+            decoding="async"
             draggable={false}
           />
         </picture>
@@ -144,7 +95,7 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/55 via-black/20 to-transparent md:h-44" />
 
       <div className="hidden lg:block">
-        <Bubbles count={4} />
+        <Bubbles count={2} />
       </div>
 
       <h1 className="sr-only">
@@ -153,9 +104,9 @@ export default function Hero() {
 
       <div className="section-pad relative z-20 flex min-h-[100svh] w-full max-w-[1400px] flex-col justify-end pb-10 pt-24 md:pb-16 md:pt-28">
         <motion.div
-          initial={{ opacity: 0, y: 22 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.35, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="hero-rail"
         >
           <div className="hero-rail__actions">

@@ -17,7 +17,7 @@ export default function CustomAquarium() {
           src={experienceBg}
           alt=""
           aria-hidden
-          className="h-full w-full object-cover object-center brightness-110"
+          className="h-full w-full object-cover object-center"
           loading="lazy"
           decoding="async"
         />

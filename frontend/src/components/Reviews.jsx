@@ -5,19 +5,20 @@ import { useContent } from '../context/ContentContext'
 export default function Reviews() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-10%' })
+  const visible = useInView(ref, { amount: 0.2 })
   const { reviews, store } = useContent()
   const [active, setActive] = useState(0)
   const review = reviews[active] || reviews[0]
   const n = reviews.length || 1
 
   useEffect(() => {
-    if (n < 2) return undefined
+    if (n < 2 || !visible) return undefined
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
     const id = window.setInterval(() => {
       setActive((i) => (i + 1) % n)
-    }, 4000)
+    }, 5000)
     return () => window.clearInterval(id)
-  }, [n])
+  }, [n, visible])
 
   if (!reviews?.length) return null
 

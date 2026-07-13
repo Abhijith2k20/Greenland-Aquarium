@@ -40,6 +40,11 @@ html {
   scroll-behavior: auto;
 }
 
+.home-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: 800px;
+}
+
 html.lenis,
 html.lenis body {
   height: auto;
@@ -174,9 +179,8 @@ img {
 }
 
 .wave-path {
-  animation: waveDrift 10s ease-in-out infinite alternate;
+  animation: waveDrift 14s ease-in-out infinite alternate;
   transform-origin: center bottom;
-  will-change: transform;
 }
 
 @keyframes waveDrift {
@@ -393,8 +397,7 @@ img {
   inset: auto 0 0 0;
   height: 55%;
   z-index: 1;
-  background: linear-gradient(to top, color-mix(in srgb, var(--services-tint) 22%, transparent), transparent);
-  mix-blend-mode: soft-light;
+  background: linear-gradient(to top, color-mix(in srgb, var(--services-tint) 18%, transparent), transparent);
   transition: background 0.5s ease;
 }
 
@@ -710,37 +713,20 @@ img {
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(125deg, rgba(255, 255, 255, 0.12), transparent 35%, transparent 65%, rgba(0, 0, 0, 0.2)),
-    radial-gradient(ellipse 80% 60% at 50% 120%, rgba(0, 0, 0, 0.35), transparent 55%);
-  mix-blend-mode: soft-light;
+    linear-gradient(125deg, rgba(255, 255, 255, 0.1), transparent 35%, transparent 65%, rgba(0, 0, 0, 0.18)),
+    radial-gradient(ellipse 80% 60% at 50% 120%, rgba(0, 0, 0, 0.3), transparent 55%);
 }
 
 .services-shot {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.4s ease;
+  will-change: opacity;
 }
 
 .services-shot.is-active {
   opacity: 1;
-}
-
-@media (min-width: 768px) {
-  .services-shot {
-    transform: scale(1.06);
-    clip-path: inset(6% 6% 6% 6% round 1rem);
-    transition:
-      opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-      clip-path 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .services-shot.is-active {
-    transform: scale(1.02);
-    clip-path: inset(0 0 0 0 round 0);
-    animation: servicesKen 8s ease-in-out infinite alternate;
-  }
 }
 
 .services-shot__img {
@@ -756,15 +742,6 @@ img {
   background: linear-gradient(160deg, #12181e, #0a0e12);
 }
 
-@keyframes servicesKen {
-  from {
-    transform: scale(1.02) translate3d(0, 0, 0);
-  }
-  to {
-    transform: scale(1.07) translate3d(-1.5%, 1%, 0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .services-card,
   .services-shot,
@@ -772,12 +749,6 @@ img {
   .services-canvas__glow,
   .services-frame {
     transition: none;
-  }
-
-  .services-shot.is-active {
-    animation: none;
-    transform: none;
-    clip-path: none;
   }
 }
 
@@ -1412,6 +1383,37 @@ img {
 
 
 /* —— Hero bottom rail: CTAs left, copy right —— */
+.hero-section {
+  opacity: 0;
+  transition: opacity 0.65s ease;
+}
+
+.hero-section.is-ready {
+  opacity: 1;
+}
+
+.hero-section__img {
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-section.is-ready .hero-section__img {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section,
+  .hero-section__img {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 .hero-rail {
   display: flex;
   flex-direction: column;

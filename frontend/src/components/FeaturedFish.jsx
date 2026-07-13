@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
-import { getLenisInstance, scrollToY } from '../lib/lenisBridge'
+import { scrollToY } from '../lib/lenisBridge'
 
 const CARD_COUNT = 3
 
@@ -76,7 +76,12 @@ export default function FeaturedFish() {
 
       panelRefs.current.forEach((el, i) => {
         if (!el) return
-        el.style.flexGrow = String(flexForDist(Math.abs(i - pos)))
+        const next = flexForDist(Math.abs(i - pos))
+        // Skip tiny flex writes — each flexGrow change forces layout
+        const prev = Number(el.style.flexGrow || 0)
+        if (Math.abs(prev - next) > 0.02) {
+          el.style.flexGrow = String(next)
+        }
       })
 
       const idx = Math.min(items.length - 1, Math.round(pos))
@@ -97,25 +102,11 @@ export default function FeaturedFish() {
 
     apply()
     syncPanelAttrs(activeRef.current)
+    // Window scroll is enough — Lenis already updates the document scroll position
     window.addEventListener('scroll', onScroll, { passive: true })
-
-    let lenis = getLenisInstance()
-    lenis?.on?.('scroll', onScroll)
-    const attachLate = window.setInterval(() => {
-      const next = getLenisInstance()
-      if (!next || next === lenis) return
-      lenis?.off?.('scroll', onScroll)
-      lenis = next
-      lenis.on('scroll', onScroll)
-      window.clearInterval(attachLate)
-    }, 120)
-    const stopAttach = window.setTimeout(() => window.clearInterval(attachLate), 2500)
 
     return () => {
       window.removeEventListener('scroll', onScroll)
-      lenis?.off?.('scroll', onScroll)
-      window.clearInterval(attachLate)
-      window.clearTimeout(stopAttach)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
   }, [isDesktop, reduced, items.length])
@@ -275,7 +266,7 @@ export default function FeaturedFish() {
                   <img
                     src={fish.image}
                     alt={fish.name}
-                    className="featured-panel__img pointer-events-none absolute inset-0 h-full w-full object-cover brightness-110"
+                    className="featured-panel__img pointer-events-none absolute inset-0 h-full w-full object-cover"
                     loading={i === 0 ? 'eager' : 'lazy'}
                     decoding="async"
                     draggable={false}

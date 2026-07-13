@@ -12,7 +12,7 @@ function isCoarsePointer() {
 
 /**
  * Smooth scroll for desktop homepage only.
- * Native RAF (no GSAP ticker). Disabled on mobile / reduced-motion / other routes.
+ * RAF runs only while Lenis is scrolling — sleeps when idle.
  */
 export function useLenis(enabled = true) {
   const [lenis, setLenis] = useState(null)
@@ -25,29 +25,52 @@ export function useLenis(enabled = true) {
     }
 
     const instance = new Lenis({
-      duration: 1.2,
+      duration: 1.05,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       syncTouch: false,
       wheelMultiplier: 0.85,
       touchMultiplier: 1,
+      autoRaf: false,
     })
 
     setLenisInstance(instance)
 
     let rafId = 0
-    const raf = (time) => {
-      instance.raf(time)
-      rafId = requestAnimationFrame(raf)
+    let running = false
+
+    const stopRaf = () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      rafId = 0
+      running = false
     }
-    rafId = requestAnimationFrame(raf)
+
+    const loop = (time) => {
+      instance.raf(time)
+      if (instance.isScrolling) {
+        rafId = requestAnimationFrame(loop)
+      } else {
+        running = false
+        rafId = 0
+      }
+    }
+
+    const kick = () => {
+      if (running) return
+      running = true
+      rafId = requestAnimationFrame(loop)
+    }
+
+    instance.on('scroll', kick)
+    window.addEventListener('wheel', kick, { passive: true })
+    window.addEventListener('keydown', kick, { passive: true })
 
     setLenis(instance)
     document.documentElement.classList.add('lenis', 'lenis-smooth')
 
     const onChange = () => {
       if (isCoarsePointer()) {
-        cancelAnimationFrame(rafId)
+        stopRaf()
         instance.destroy()
         setLenis(null)
         setLenisInstance(null)
@@ -59,7 +82,10 @@ export function useLenis(enabled = true) {
 
     return () => {
       mq.removeEventListener?.('change', onChange)
-      cancelAnimationFrame(rafId)
+      window.removeEventListener('wheel', kick)
+      window.removeEventListener('keydown', kick)
+      instance.off('scroll', kick)
+      stopRaf()
       instance.destroy()
       setLenis(null)
       setLenisInstance(null)

@@ -114,7 +114,7 @@ export default function Categories() {
                       src={cat.image}
                       alt=""
                       aria-hidden
-                      className="absolute inset-0 h-full w-full object-cover brightness-110 transition duration-[900ms] ease-out group-hover:scale-[1.06] group-hover:brightness-[1.12]"
+                      className="absolute inset-0 h-full w-full object-cover transition duration-[700ms] ease-out group-hover:scale-[1.04]"
                       loading="lazy"
                     />
                   )}

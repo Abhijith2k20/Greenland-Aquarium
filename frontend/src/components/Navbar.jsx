@@ -54,14 +54,20 @@ export default function Navbar() {
 
   useEffect(() => {
     let ticking = false
+    let last = false
     const onScroll = () => {
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
-        setScrolled(window.scrollY > 40)
+        const next = window.scrollY > 40
+        if (next !== last) {
+          last = next
+          setScrolled(next)
+        }
         ticking = false
       })
     }
+    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -98,7 +104,7 @@ export default function Navbar() {
 
   const pillTone =
     scrolled || !isHome || open
-      ? 'border border-transparent bg-[#07090b]/70 shadow-lg shadow-black/30 backdrop-blur-xl backdrop-saturate-150'
+      ? 'border border-white/[0.06] bg-[#07090b]/92 shadow-lg shadow-black/25'
       : 'border border-transparent bg-transparent'
 
   return (

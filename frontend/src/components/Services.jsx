@@ -62,19 +62,16 @@ export default function Services() {
         const top = track.getBoundingClientRect().top
         const scrolled = Math.min(total, Math.max(0, -top))
         const progress = scrolled / total
-        const pos = progress * (items.length - 1)
-        const idx = Math.min(items.length - 1, Math.round(pos))
+        const idx = Math.min(items.length - 1, Math.round(progress * (items.length - 1)))
 
         stage.style.setProperty('--services-progress', String(progress))
-        stage.style.setProperty('--services-pos', String(pos))
         stage.dataset.active = String(idx)
-
-        const accent = SERVICE_ACCENTS[items[idx]?.id] || SERVICE_ACCENTS[1]
-        stage.style.setProperty('--services-glow', accent.glow)
-        stage.style.setProperty('--services-tint', accent.tint)
 
         if (idx !== activeRef.current && Date.now() >= userLockUntil.current) {
           activeRef.current = idx
+          const accent = SERVICE_ACCENTS[items[idx]?.id] || SERVICE_ACCENTS[1]
+          stage.style.setProperty('--services-glow', accent.glow)
+          stage.style.setProperty('--services-tint', accent.tint)
           setActive(idx)
         }
       })
@@ -82,10 +79,8 @@ export default function Services() {
 
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll, { passive: true })
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [items, reduced])
