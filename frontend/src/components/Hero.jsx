@@ -2,14 +2,13 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
-import Bubbles from './Bubbles'
 import { STORE } from '../data/content'
 import { useContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
 import { scrollToSection } from '../lib/lenisBridge'
-import heroDesktop from '../assets/hero-desktop.jpg'
-import heroTablet from '../assets/hero-tablet.png'
-import heroMobile from '../assets/hero-mobile.png'
+import heroDesktop from '../assets/hero-desktop.webp'
+import heroTablet from '../assets/hero-tablet.webp'
+import heroMobile from '../assets/hero-mobile.webp'
 
 function HeroDiveCta({ to }) {
   const navigate = useNavigate()
@@ -124,12 +123,22 @@ export default function Hero() {
         className="hero-section__parallax absolute inset-0 flex items-center justify-center"
       >
         <picture className="flex h-full w-full items-center justify-center">
-          <source media="(min-width: 1024px)" srcSet={heroDesktop} />
-          <source media="(min-width: 768px)" srcSet={heroTablet} />
+          <source
+            type="image/webp"
+            media="(min-width: 1024px)"
+            srcSet={heroDesktop}
+          />
+          <source
+            type="image/webp"
+            media="(min-width: 768px)"
+            srcSet={heroTablet}
+          />
           <img
             src={heroMobile}
             alt="Greenland Aquarium"
             className="hero-section__img max-w-none object-contain object-center md:h-full md:w-full"
+            width={941}
+            height={1672}
             fetchPriority="high"
             decoding="async"
             draggable={false}
@@ -140,10 +149,6 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.15)_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/35 to-transparent md:h-28" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/55 via-black/20 to-transparent md:h-44" />
-
-      <div className="hidden lg:block">
-        <Bubbles count={2} />
-      </div>
 
       <h1 className="sr-only">
         {name} — {tagline}

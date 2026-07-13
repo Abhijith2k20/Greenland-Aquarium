@@ -109,13 +109,13 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-[60] transition-all duration-500 ${
+      className={`fixed inset-x-0 top-0 z-[60] transition-[padding] duration-300 ${
         scrolled || open ? 'py-3' : 'py-5'
       }`}
     >
       <div className="section-pad relative z-[70]">
         <nav
-          className={`nav-pill mx-auto flex max-w-7xl items-center transition-all duration-500 ${pillTone}`}
+          className={`nav-pill mx-auto flex max-w-7xl items-center transition-[background-color,border-color,box-shadow,padding] duration-300 ${pillTone}`}
         >
           <AppLink
             to="/"

@@ -13,7 +13,12 @@ export default function Reviews() {
 
   useEffect(() => {
     if (n < 2 || !visible) return undefined
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    if (
+      window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 767px), (pointer: coarse)')
+        .matches
+    ) {
+      return undefined
+    }
     const id = window.setInterval(() => {
       setActive((i) => (i + 1) % n)
     }, 5000)

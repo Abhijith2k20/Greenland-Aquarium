@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -13,11 +13,19 @@ export default function Categories() {
 
   const items = categories || []
   const count = items.length
-  const repeatCount = 5
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-width: 767px), (pointer: coarse)').matches
+      : true,
+  )
+  // Fewer duplicates on mobile — 30 slides was a major lag source
+  const repeatCount = isMobile ? 3 : 5
+  const skeletonSlideCount = 9
   const initialSlide = count > 0 ? count * Math.floor(repeatCount / 2) : 0
+  const activeStartSlide = count > 0 ? initialSlide : Math.floor(skeletonSlideCount / 2)
   const slides = useMemo(() => {
     if (loading && count === 0) {
-      return Array.from({ length: 6 }).map((_, i) => ({
+      return Array.from({ length: skeletonSlideCount }).map((_, i) => ({
         id: `sk-${i}`,
         skeleton: true,
         sourceIndex: i,
@@ -26,8 +34,6 @@ export default function Categories() {
 
     if (count === 0) return []
 
-    // Swiper loop leaves blank space with only six cards and 3.5/4.5 slidesPerView.
-    // A repeated middle track keeps both sides populated without fighting page scroll.
     return Array.from({ length: repeatCount }).flatMap((_, group) =>
       items.map((cat, sourceIndex) => ({
         ...cat,
@@ -35,13 +41,21 @@ export default function Categories() {
         loopKey: `${cat.id}-${group}`,
       })),
     )
-  }, [count, items, loading])
+  }, [count, items, loading, repeatCount, skeletonSlideCount])
 
   const toCollection = (path) => (e) => {
     e.preventDefault()
     prepareRouteChange()
     navigate(path)
   }
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px), (pointer: coarse)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     if (count === 0 || !swiperRef.current) return undefined
@@ -97,7 +111,7 @@ export default function Categories() {
           key={count > 0 ? `categories-ready-${count}` : 'categories-loading'}
           className="inspire__swiper"
           centeredSlides
-          initialSlide={initialSlide}
+          initialSlide={activeStartSlide}
           slidesPerView={1.45}
           spaceBetween={15}
           speed={280}
@@ -116,7 +130,7 @@ export default function Categories() {
             swiperRef.current = swiper
             requestAnimationFrame(() => {
               swiper.update()
-              if (count > 0) swiper.slideTo(initialSlide, 0)
+              swiper.slideTo(activeStartSlide, 0)
             })
           }}
           onTransitionEnd={(swiper) => {
@@ -160,9 +174,10 @@ export default function Categories() {
                         src={cat.image}
                         alt=""
                         className="inspire-card__img"
-                        loading={i < 3 ? 'eager' : 'lazy'}
+                        loading={Math.abs(i - initialSlide) <= 2 ? 'eager' : 'lazy'}
                         decoding="async"
                         draggable={false}
+                        sizes="(max-width: 767px) 70vw, 280px"
                       />
                     ) : (
                       <div
