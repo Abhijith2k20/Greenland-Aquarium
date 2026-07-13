@@ -1,6 +1,6 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { MessageCircle, ArrowRight } from 'lucide-react'
+import { MessageCircle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useContent } from '../context/ContentContext'
 import { FEATURED_FISH } from '../data/content'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
@@ -59,6 +59,44 @@ function mixByCategory(items, categories, limit) {
 }
 
 function StoreRail({ title, items, phone, onOpen, showCategory, moreTo, moreLabel }) {
+  const stripRef = useRef(null)
+  const [canPrev, setCanPrev] = useState(false)
+  const [canNext, setCanNext] = useState(false)
+
+  const updateArrows = useCallback(() => {
+    const el = stripRef.current
+    if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    setCanPrev(el.scrollLeft > 4)
+    setCanNext(max > 4 && el.scrollLeft < max - 4)
+  }, [])
+
+  useEffect(() => {
+    const el = stripRef.current
+    if (!el) return undefined
+
+    updateArrows()
+    el.addEventListener('scroll', updateArrows, { passive: true })
+    window.addEventListener('resize', updateArrows)
+
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateArrows) : null
+    ro?.observe(el)
+
+    return () => {
+      el.removeEventListener('scroll', updateArrows)
+      window.removeEventListener('resize', updateArrows)
+      ro?.disconnect()
+    }
+  }, [items, updateArrows])
+
+  const scrollByDir = (dir) => {
+    const el = stripRef.current
+    if (!el) return
+    const card = el.querySelector('.store-now__card')
+    const step = card ? card.getBoundingClientRect().width + 24 : Math.min(320, el.clientWidth * 0.8)
+    el.scrollBy({ left: dir * step, behavior: 'smooth' })
+  }
+
   if (!items.length) return null
 
   return (
@@ -67,64 +105,86 @@ function StoreRail({ title, items, phone, onOpen, showCategory, moreTo, moreLabe
         <h3 className="store-now__rail-title">{title}</h3>
       </div>
 
-      <div className="store-now__strip">
-        {items.map((item, i) => (
-          <article key={item.id} className="store-now__card">
-            <button
-              type="button"
-              className="store-now__media"
-              onClick={() => onOpen(item)}
-              aria-label={item.name}
-            >
-              <img
-                src={item.image}
-                alt=""
-                className="store-now__img"
-                loading={i < 4 ? 'eager' : 'lazy'}
-                decoding="async"
-                draggable={false}
-              />
-            </button>
+      <div className="store-now__viewport">
+        <button
+          type="button"
+          className="store-now__arrow store-now__arrow--prev"
+          aria-label={`Previous ${title}`}
+          disabled={!canPrev}
+          onClick={() => scrollByDir(-1)}
+        >
+          <ChevronLeft size={20} strokeWidth={2} aria-hidden />
+        </button>
 
-            <div className="store-now__meta">
-              {showCategory && item.category ? (
-                <p className="store-now__cat">{item.category}</p>
-              ) : null}
+        <div className="store-now__strip" ref={stripRef}>
+          {items.map((item, i) => (
+            <article key={item.id} className="store-now__card">
               <button
                 type="button"
-                className="store-now__name"
+                className="store-now__media"
                 onClick={() => onOpen(item)}
+                aria-label={item.name}
               >
-                {item.name}
+                <img
+                  src={item.image}
+                  alt=""
+                  className="store-now__img"
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  draggable={false}
+                />
               </button>
-              {item.price != null ? (
-                <p className="store-now__price">{formatPrice(item.price)}</p>
-              ) : (
-                <p className="store-now__price store-now__price--ask">Price on request</p>
-              )}
-              <a
-                href={enquireUrl(phone, item)}
-                target="_blank"
-                rel="noreferrer"
-                className="store-now__enquire"
-              >
-                <MessageCircle size={14} aria-hidden />
-                Enquire
-              </a>
-            </div>
-          </article>
-        ))}
 
-        {moreTo ? (
-          <Link
-            to={moreTo}
-            onClick={() => prepareRouteChange()}
-            className="store-now__more"
-          >
-            <ArrowRight size={18} strokeWidth={2} aria-hidden />
-            <span>{moreLabel || 'More'}</span>
-          </Link>
-        ) : null}
+              <div className="store-now__meta">
+                {showCategory && item.category ? (
+                  <p className="store-now__cat">{item.category}</p>
+                ) : null}
+                <button
+                  type="button"
+                  className="store-now__name"
+                  onClick={() => onOpen(item)}
+                >
+                  {item.name}
+                </button>
+                {item.price != null ? (
+                  <p className="store-now__price">{formatPrice(item.price)}</p>
+                ) : (
+                  <p className="store-now__price store-now__price--ask">Price on request</p>
+                )}
+                <a
+                  href={enquireUrl(phone, item)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="store-now__enquire"
+                >
+                  <MessageCircle size={14} aria-hidden />
+                  Enquire
+                </a>
+              </div>
+            </article>
+          ))}
+
+          {moreTo ? (
+            <Link
+              to={moreTo}
+              onClick={() => prepareRouteChange()}
+              className="store-now__more"
+            >
+              <ArrowRight size={18} strokeWidth={2} aria-hidden />
+              <span>{moreLabel || 'More'}</span>
+            </Link>
+          ) : null}
+        </div>
+
+        <button
+          type="button"
+          className="store-now__arrow store-now__arrow--next"
+          aria-label={`Next ${title}`}
+          disabled={!canNext}
+          onClick={() => scrollByDir(1)}
+        >
+          <ChevronRight size={20} strokeWidth={2} aria-hidden />
+        </button>
       </div>
     </div>
   )
