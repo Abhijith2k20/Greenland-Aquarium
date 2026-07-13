@@ -345,6 +345,7 @@ img {
   position: absolute;
   inset: 0;
   display: grid;
+  grid-template-rows: 1fr 1fr;
   overflow: hidden;
   border-radius: 1.15rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -363,13 +364,14 @@ img {
 
 @media (min-width: 900px) {
   .services-scroll__card {
+    grid-template-rows: none;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
   }
 }
 
 .services-scroll__media {
   position: relative;
-  min-height: 38%;
+  min-height: 0;
   overflow: hidden;
   background: #070b0f;
 }
@@ -408,9 +410,11 @@ img {
 .services-scroll__body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
-  padding: 1.35rem 1.25rem 1.5rem;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.95rem 1rem 1.1rem;
   background:
     linear-gradient(
       165deg,
@@ -421,14 +425,16 @@ img {
 
 @media (min-width: 900px) {
   .services-scroll__body {
+    justify-content: center;
+    overflow: visible;
     padding: 2.5rem 2.75rem 2.65rem;
     border-left: 1px solid rgba(255, 255, 255, 0.06);
   }
 }
 
 .services-scroll__kicker {
-  margin: 0 0 0.55rem;
-  font-size: 0.72rem;
+  margin: 0 0 0.4rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -438,7 +444,7 @@ img {
 .services-scroll__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.85rem, 4vw, 2.85rem);
+  font-size: clamp(1.45rem, 5.5vw, 2.85rem);
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1.05;
@@ -446,10 +452,10 @@ img {
 }
 
 .services-scroll__desc {
-  margin: 0.85rem 0 0;
+  margin: 0.55rem 0 0;
   max-width: 42ch;
-  font-size: 0.98rem;
-  line-height: 1.6;
+  font-size: 0.88rem;
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.68);
 }
 
@@ -465,9 +471,9 @@ img {
 }
 
 .services-scroll__panel {
-  margin-top: 1.25rem;
-  padding: 1rem 1.05rem;
-  border-radius: 1rem;
+  margin-top: 0.85rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.9rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.035);
 }
@@ -476,6 +482,7 @@ img {
   .services-scroll__panel {
     margin-top: 1.5rem;
     padding: 1.15rem 1.2rem;
+    border-radius: 1rem;
   }
 }
 
@@ -523,14 +530,14 @@ img {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 1.35rem;
+  margin-top: 0.95rem;
   width: fit-content;
-  min-height: 2.85rem;
-  padding: 0.8rem 1.35rem;
+  min-height: 2.6rem;
+  padding: 0.7rem 1.2rem;
   border-radius: 999px;
   background: #25d366;
   color: #041018;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
