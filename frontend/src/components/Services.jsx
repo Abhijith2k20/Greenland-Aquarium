@@ -184,7 +184,7 @@ export default function Services() {
         style={{ height: `${items.length * 100}svh` }}
       >
         <div className="services-scroll__sticky">
-          <div className="section-pad mx-auto flex h-full max-w-7xl flex-col py-8 md:py-12">
+          <div className="services-scroll__shell mx-auto flex h-full flex-col py-8 md:py-12">
             <header className="services-scroll__intro">
               <p className="services-scroll__eyebrow">Services</p>
               <h2 className="services-scroll__heading">Crafted care, end to end.</h2>
