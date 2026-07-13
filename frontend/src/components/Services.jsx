@@ -28,6 +28,7 @@ export default function Services() {
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
   )
   const activeRef = useRef(0)
+  const userLockUntil = useRef(0)
 
   useEffect(() => {
     const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -72,7 +73,7 @@ export default function Services() {
         stage.style.setProperty('--services-glow', accent.glow)
         stage.style.setProperty('--services-tint', accent.tint)
 
-        if (idx !== activeRef.current) {
+        if (idx !== activeRef.current && Date.now() >= userLockUntil.current) {
           activeRef.current = idx
           setActive(idx)
         }
@@ -126,9 +127,14 @@ export default function Services() {
   const goTo = (i) => {
     const track = trackRef.current
     if (!track) return
+    userLockUntil.current = Date.now() + 700
+    activeRef.current = i
+    setActive(i)
+    if (items.length < 2) return
     const total = Math.max(1, track.offsetHeight - window.innerHeight)
-    const target = track.offsetTop + (items.length === 1 ? 0 : (total * i) / (items.length - 1))
-    scrollToY(target)
+    const top =
+      track.getBoundingClientRect().top + window.scrollY + (i / (items.length - 1)) * total
+    scrollToY(top)
   }
 
   return (
@@ -137,10 +143,10 @@ export default function Services() {
         ref={trackRef}
         className="services-track"
         style={{
-          height: `calc(100svh + ${(items.length - 1) * (narrow ? 55 : 90)}svh)`,
+          height: `calc(100svh + ${(items.length - 1) * (narrow ? 48 : 90)}svh)`,
         }}
       >
-        <div className="services-sticky">
+        <div className={`services-sticky ${narrow ? 'services-sticky--mobile' : ''}`}>
           <div
             ref={stageRef}
             className="services-canvas"
@@ -154,8 +160,8 @@ export default function Services() {
           >
             <div className="services-canvas__glow" aria-hidden />
 
-            <div className="section-pad relative z-10 mx-auto flex h-full max-w-7xl flex-col py-14 md:py-24">
-              <header className="services-header">
+            <div className="section-pad relative z-10 mx-auto flex h-full max-w-7xl flex-col py-12 md:py-24">
+              <header className={`services-header ${narrow ? 'services-header--mobile' : ''}`}>
                 <p className="services-header__eyebrow">Services</p>
                 <h2 className="services-header__title">Crafted care, end to end.</h2>
               </header>

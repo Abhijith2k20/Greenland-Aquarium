@@ -150,7 +150,7 @@ export default function FeaturedFish() {
   const trackHeight = useSticky
     ? isDesktop
       ? `${100 + steps * 90}vh`
-      : `${100 + steps * 55}svh`
+      : `${100 + steps * 48}svh`
     : undefined
 
   const goToCard = (i) => {
@@ -182,7 +182,7 @@ export default function FeaturedFish() {
       <div
         className={
           useSticky
-            ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-12 sm:py-16 lg:py-20'
+            ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-10 sm:py-16 lg:py-20'
             : 'relative py-20 sm:py-24'
         }
       >

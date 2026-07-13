@@ -266,6 +266,18 @@ img {
   overflow: hidden;
 }
 
+.services-sticky--mobile {
+  height: 100dvh;
+  max-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.services-sticky--mobile .services-canvas {
+  flex: 1;
+  min-height: 0;
+}
+
 .services-canvas {
   position: relative;
   height: 100%;
@@ -287,6 +299,16 @@ img {
 
 .services-header {
   margin-bottom: 1.5rem;
+}
+
+.services-header--mobile {
+  margin-bottom: 0.85rem;
+  flex-shrink: 0;
+}
+
+.services-header--mobile .services-header__title {
+  font-size: clamp(1.55rem, 6.5vw, 1.9rem);
+  max-width: none;
 }
 
 @media (min-width: 768px) {
@@ -327,8 +349,38 @@ img {
 .services-layout--mobile {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 1rem;
+  justify-content: flex-start;
+  gap: 0.85rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.services-layout--mobile .services-frame {
+  aspect-ratio: 16 / 10;
+  max-height: min(38svh, 220px);
+  border-radius: 1rem;
+  flex-shrink: 0;
+}
+
+.services-layout--mobile .services-copy {
+  min-height: 0;
+  flex: 1;
+}
+
+.services-layout--mobile .services-card {
+  position: relative;
+  transform: translate3d(0, 8px, 0);
+}
+
+.services-layout--mobile .services-card:not(.is-active) {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.services-layout--mobile .services-card.is-active {
+  opacity: 1;
+  transform: none;
 }
 
 @media (min-width: 900px) {
@@ -395,6 +447,16 @@ img {
   font-size: 0.9rem;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.55);
+}
+
+.services-layout--mobile .services-card__desc {
+  margin-top: 0.45rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
@@ -658,8 +720,10 @@ img {
 
 .featured-mobile__media {
   position: relative;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 3 / 4;
+  max-height: min(58svh, 420px);
   width: 100%;
+  margin-inline: auto;
   overflow: hidden;
   border-radius: 1.25rem;
   background: #0a0e12;
