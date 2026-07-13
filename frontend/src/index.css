@@ -852,6 +852,19 @@ img {
   opacity: 1;
 }
 
+/* Mobile featured strip — pan-y default so the page can scroll; JS handles horizontal */
+.featured-mobile-strip {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.featured-mobile-strip::-webkit-scrollbar {
+  display: none;
+}
+
 .masonry {
   columns: 1;
   column-gap: 1rem;

@@ -121,6 +121,77 @@ export default function FeaturedFish() {
     }
   }, [isDesktop, reduced, items.length])
 
+  // Mobile: horizontal swipe for cards, vertical swipe for the page
+  useEffect(() => {
+    if (isDesktop) return undefined
+    const strip = stripRef.current
+    if (!strip) return undefined
+
+    let startX = 0
+    let startY = 0
+    let lastX = 0
+    let axis = /** @type {null | 'x' | 'y'} */ (null)
+
+    const onStart = (e) => {
+      if (!e.touches[0]) return
+      startX = lastX = e.touches[0].clientX
+      startY = e.touches[0].clientY
+      axis = null
+    }
+
+    const onMove = (e) => {
+      if (!e.touches[0]) return
+      const x = e.touches[0].clientX
+      const y = e.touches[0].clientY
+      const dx = x - startX
+      const dy = y - startY
+
+      if (!axis) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
+        axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+      }
+
+      if (axis === 'x') {
+        e.preventDefault()
+        strip.scrollLeft -= x - lastX
+        lastX = x
+      }
+      // axis === 'y' → let the page scroll normally
+    }
+
+    const onEnd = () => {
+      if (axis === 'x') {
+        const mid = strip.scrollLeft + strip.clientWidth / 2
+        const panels = [...strip.querySelectorAll('[data-index]')]
+        let bestLeft = strip.scrollLeft
+        let bestDist = Infinity
+        panels.forEach((panel) => {
+          const target = panel.offsetLeft - (strip.clientWidth - panel.offsetWidth) / 2
+          const center = panel.offsetLeft + panel.offsetWidth / 2
+          const d = Math.abs(center - mid)
+          if (d < bestDist) {
+            bestDist = d
+            bestLeft = Math.max(0, target)
+          }
+        })
+        strip.scrollTo({ left: bestLeft, behavior: 'smooth' })
+      }
+      axis = null
+    }
+
+    strip.addEventListener('touchstart', onStart, { passive: true })
+    strip.addEventListener('touchmove', onMove, { passive: false })
+    strip.addEventListener('touchend', onEnd, { passive: true })
+    strip.addEventListener('touchcancel', onEnd, { passive: true })
+
+    return () => {
+      strip.removeEventListener('touchstart', onStart)
+      strip.removeEventListener('touchmove', onMove)
+      strip.removeEventListener('touchend', onEnd)
+      strip.removeEventListener('touchcancel', onEnd)
+    }
+  }, [isDesktop, items.length])
+
   // Mobile: active card from horizontal snap scroll
   useEffect(() => {
     if (isDesktop) return undefined
@@ -255,7 +326,7 @@ export default function FeaturedFish() {
             className={
               isDesktop
                 ? 'featured-strip flex h-[400px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2 lg:h-[460px]'
-                : 'flex h-[320px] gap-3 overflow-x-auto overscroll-x-contain px-[clamp(1.25rem,4vw,5rem)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] touch-pan-x snap-x snap-mandatory sm:h-[360px] [&::-webkit-scrollbar]:hidden'
+                : 'featured-mobile-strip flex h-[320px] gap-3 overflow-x-auto px-[clamp(1.25rem,4vw,5rem)] pb-2 snap-x snap-mandatory sm:h-[360px]'
             }
           >
             {items.map((fish, i) => {
