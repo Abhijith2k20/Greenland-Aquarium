@@ -852,17 +852,75 @@ img {
   opacity: 1;
 }
 
-/* Mobile featured strip — pan-y default so the page can scroll; JS handles horizontal */
+/* Mobile featured — static cards, native horizontal scroll, no animation */
 .featured-mobile-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0 clamp(1.15rem, 4.5vw, 1.75rem) 0.25rem;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-  overscroll-behavior-x: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
 .featured-mobile-strip::-webkit-scrollbar {
   display: none;
+}
+
+.featured-mobile-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(72vw, 280px);
+  height: 340px;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: #0a0e12;
+}
+
+.featured-mobile-card__img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.featured-mobile-card__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.15) 45%, transparent 70%);
+  pointer-events: none;
+}
+
+.featured-mobile-card__body {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 1rem 1rem 1.1rem;
+}
+
+.featured-mobile-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.featured-mobile-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: #25d366;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .masonry {

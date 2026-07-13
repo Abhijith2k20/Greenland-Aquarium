@@ -25,7 +25,6 @@ export default function FeaturedFish() {
   )
 
   const trackRef = useRef(null)
-  const stripRef = useRef(null)
   const panelRefs = useRef([])
   const activeRef = useRef(0)
   const userLockUntil = useRef(0)
@@ -121,118 +120,6 @@ export default function FeaturedFish() {
     }
   }, [isDesktop, reduced, items.length])
 
-  // Mobile: horizontal swipe for cards, vertical swipe for the page
-  useEffect(() => {
-    if (isDesktop) return undefined
-    const strip = stripRef.current
-    if (!strip) return undefined
-
-    let startX = 0
-    let startY = 0
-    let lastX = 0
-    let axis = /** @type {null | 'x' | 'y'} */ (null)
-
-    const onStart = (e) => {
-      if (!e.touches[0]) return
-      startX = lastX = e.touches[0].clientX
-      startY = e.touches[0].clientY
-      axis = null
-    }
-
-    const onMove = (e) => {
-      if (!e.touches[0]) return
-      const x = e.touches[0].clientX
-      const y = e.touches[0].clientY
-      const dx = x - startX
-      const dy = y - startY
-
-      if (!axis) {
-        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
-        axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
-      }
-
-      if (axis === 'x') {
-        e.preventDefault()
-        strip.scrollLeft -= x - lastX
-        lastX = x
-      }
-      // axis === 'y' → let the page scroll normally
-    }
-
-    const onEnd = () => {
-      if (axis === 'x') {
-        const mid = strip.scrollLeft + strip.clientWidth / 2
-        const panels = [...strip.querySelectorAll('[data-index]')]
-        let bestLeft = strip.scrollLeft
-        let bestDist = Infinity
-        panels.forEach((panel) => {
-          const target = panel.offsetLeft - (strip.clientWidth - panel.offsetWidth) / 2
-          const center = panel.offsetLeft + panel.offsetWidth / 2
-          const d = Math.abs(center - mid)
-          if (d < bestDist) {
-            bestDist = d
-            bestLeft = Math.max(0, target)
-          }
-        })
-        strip.scrollTo({ left: bestLeft, behavior: 'smooth' })
-      }
-      axis = null
-    }
-
-    strip.addEventListener('touchstart', onStart, { passive: true })
-    strip.addEventListener('touchmove', onMove, { passive: false })
-    strip.addEventListener('touchend', onEnd, { passive: true })
-    strip.addEventListener('touchcancel', onEnd, { passive: true })
-
-    return () => {
-      strip.removeEventListener('touchstart', onStart)
-      strip.removeEventListener('touchmove', onMove)
-      strip.removeEventListener('touchend', onEnd)
-      strip.removeEventListener('touchcancel', onEnd)
-    }
-  }, [isDesktop, items.length])
-
-  // Mobile: active card from horizontal snap scroll
-  useEffect(() => {
-    if (isDesktop) return undefined
-    const strip = stripRef.current
-    if (!strip) return undefined
-
-    let settleTimer = 0
-
-    const pickCentered = () => {
-      const mid = strip.scrollLeft + strip.clientWidth / 2
-      const panels = [...strip.querySelectorAll('[data-index]')]
-      let best = 0
-      let bestDist = Infinity
-      panels.forEach((panel) => {
-        const center = panel.offsetLeft + panel.offsetWidth / 2
-        const d = Math.abs(center - mid)
-        if (d < bestDist) {
-          bestDist = d
-          best = Number(panel.dataset.index)
-        }
-      })
-      if (best !== activeRef.current) {
-        activeRef.current = best
-        syncPanelAttrs(best)
-        setActive(best)
-      }
-    }
-
-    const onScroll = () => {
-      window.clearTimeout(settleTimer)
-      settleTimer = window.setTimeout(pickCentered, 80)
-    }
-
-    strip.addEventListener('scroll', onScroll, { passive: true })
-    pickCentered()
-    return () => {
-      strip.removeEventListener('scroll', onScroll)
-      window.clearTimeout(settleTimer)
-    }
-  }, [isDesktop, items.length])
-
   if (!items.length) {
     return (
       <section id="featured" className="section-pad relative py-20 sm:py-24">
@@ -260,20 +147,11 @@ export default function FeaturedFish() {
   const useSticky = isDesktop && !reduced
 
   const goToCard = (i) => {
+    if (!isDesktop) return
     lockUser()
     activeRef.current = i
     setActive(i)
     syncPanelAttrs(i)
-
-    if (!isDesktop) {
-      const strip = stripRef.current
-      const panel = strip?.querySelector(`[data-index="${i}"]`)
-      if (strip && panel) {
-        const left = panel.offsetLeft - (strip.clientWidth - panel.offsetWidth) / 2
-        strip.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
-      }
-      return
-    }
 
     panelRefs.current.forEach((el, j) => {
       if (!el) return
@@ -287,6 +165,64 @@ export default function FeaturedFish() {
     const top =
       track.getBoundingClientRect().top + window.scrollY + (i / (items.length - 1)) * total
     scrollToY(top)
+  }
+
+  const header = (
+    <div className="section-pad mx-auto max-w-7xl">
+      <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">Featured</p>
+          <h2 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">
+            Species in the spotlight.
+          </h2>
+        </div>
+        <Link
+          to="/collection"
+          onClick={() => prepareRouteChange()}
+          className="text-sm text-blue transition hover:underline"
+        >
+          View full collection →
+        </Link>
+      </div>
+    </div>
+  )
+
+  // Mobile: static cards + native horizontal scroll only
+  if (!isDesktop) {
+    return (
+      <section id="featured" className="relative bg-[var(--bg)] py-16">
+        {header}
+        <div className="featured-mobile-strip">
+          {items.map((fish) => (
+            <article key={fish.id} className="featured-mobile-card">
+              <img
+                src={fish.image}
+                alt={fish.name}
+                className="featured-mobile-card__img"
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+              />
+              <div className="featured-mobile-card__shade" aria-hidden />
+              <div className="featured-mobile-card__body">
+                <h3 className="featured-mobile-card__title">{fish.name}</h3>
+                <a
+                  href={`https://wa.me/${phone}?text=${encodeURIComponent(
+                    `Hi Greenland Aquarium, I'm interested in the ${fish.name}.`,
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="featured-mobile-card__cta"
+                >
+                  <MessageCircle size={13} color="#000000" />
+                  WhatsApp
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -303,32 +239,9 @@ export default function FeaturedFish() {
         }
       >
         <section id="featured" className="relative">
-          <div className="section-pad mx-auto max-w-7xl">
-            <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
-              <div className="max-w-2xl">
-                <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">Featured</p>
-                <h2 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">
-                  Species in the spotlight.
-                </h2>
-              </div>
-              <Link
-                to="/collection"
-                onClick={() => prepareRouteChange()}
-                className="text-sm text-blue transition hover:underline"
-              >
-                View full collection →
-              </Link>
-            </div>
-          </div>
+          {header}
 
-          <div
-            ref={stripRef}
-            className={
-              isDesktop
-                ? 'featured-strip flex h-[400px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2 lg:h-[460px]'
-                : 'featured-mobile-strip flex h-[320px] gap-3 overflow-x-auto px-[clamp(1.25rem,4vw,5rem)] pb-2 snap-x snap-mandatory sm:h-[360px]'
-            }
-          >
+          <div className="featured-strip flex h-[400px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2 lg:h-[460px]">
             {items.map((fish, i) => {
               const isActive = i === active
               return (
@@ -352,20 +265,12 @@ export default function FeaturedFish() {
                   }}
                   aria-pressed={isActive}
                   aria-label={`${fish.name} — featured item${isActive ? '' : ', select to expand'}`}
-                  className={
-                    isDesktop
-                      ? 'featured-panel relative h-full min-w-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint'
-                      : 'featured-panel relative h-full w-[min(68vw,260px)] shrink-0 cursor-pointer snap-center overflow-hidden rounded-[1.5rem] text-left contain-paint'
-                  }
-                  style={
-                    isDesktop
-                      ? {
-                          flexGrow: flexForDist(Math.abs(i - active)),
-                          flexBasis: 0,
-                          flexShrink: 1,
-                        }
-                      : undefined
-                  }
+                  className="featured-panel relative h-full min-w-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint"
+                  style={{
+                    flexGrow: flexForDist(Math.abs(i - active)),
+                    flexBasis: 0,
+                    flexShrink: 1,
+                  }}
                 >
                   <img
                     src={fish.image}
@@ -391,18 +296,18 @@ export default function FeaturedFish() {
                   </div>
 
                   <div
-                    className="featured-panel__detail absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6"
+                    className="featured-panel__detail absolute inset-x-0 bottom-0 p-5 lg:p-6"
                     aria-hidden={!isActive}
                   >
-                    <h3 className="pointer-events-none font-display text-xl font-semibold tracking-tight text-white sm:text-2xl lg:text-3xl">
+                    <h3 className="pointer-events-none font-display text-2xl font-semibold tracking-tight text-white lg:text-3xl">
                       {fish.name}
                     </h3>
-                    {isDesktop && fish.subtitle ? (
+                    {fish.subtitle ? (
                       <p className="pointer-events-none mt-2 text-sm italic text-white/50">
                         {fish.subtitle}
                       </p>
                     ) : null}
-                    {isDesktop && fish.description ? (
+                    {fish.description ? (
                       <p className="pointer-events-none mt-2 line-clamp-2 text-sm text-white/60">
                         {fish.description}
                       </p>
@@ -415,7 +320,7 @@ export default function FeaturedFish() {
                       rel="noreferrer"
                       tabIndex={isActive ? 0 : -1}
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-3 inline-flex items-center gap-1 rounded-full bg-[#25d366] px-2.5 py-1.5 text-[11px] font-semibold transition hover:bg-[#20bd5a] sm:mt-4 sm:gap-1.5 sm:px-3.5 sm:py-2 sm:text-sm"
+                      className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#25d366] px-3.5 py-2 text-sm font-semibold transition hover:bg-[#20bd5a]"
                       style={{ color: '#000000' }}
                     >
                       <MessageCircle size={13} color="#000000" />
