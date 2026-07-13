@@ -49,6 +49,8 @@ const mapCollectionItem = (f, i) => ({
   id: f._id || f.id || i,
   name: f.name,
   category: f.category || 'Fish',
+  waterType: f.waterType || null,
+  description: f.description || '',
   price: typeof f.price === 'number' ? f.price : null,
   image: optimizedUrl(f.image, 800) || FEATURED_FISH[0].image,
 })
@@ -58,6 +60,9 @@ const mapFeaturedItem = (f, i) => ({
   name: f.name,
   subtitle: f.subtitle || '',
   description: f.description || '',
+  category: f.category || 'Fish',
+  price: typeof f.price === 'number' ? f.price : null,
+  waterType: f.waterType || null,
   image: optimizedUrl(f.image, 1200) || FEATURED_FISH[0].image,
 })
 
@@ -74,6 +79,8 @@ const queries = {
     _id,
     name,
     category,
+    waterType,
+    description,
     price,
     image
   }`,
@@ -82,6 +89,7 @@ const queries = {
     name,
     subtitle,
     description,
+    category,
     image
   }`,
 }

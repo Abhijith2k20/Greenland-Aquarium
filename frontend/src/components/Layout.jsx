@@ -46,17 +46,22 @@ export default function Layout() {
   }, [pathname, hash, lenis])
 
   return (
-    <div className="relative min-h-screen bg-bg text-white">
+    <div className="relative">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-black"
       >
         Skip to content
       </a>
-      <Navbar />
-      <main id="main-content">
-        <Outlet />
-      </main>
+
+      {/* Solid sheet sits above the sticky footer and reveals it on scroll (Curate-style) */}
+      <div className="site-sheet">
+        <Navbar />
+        <main id="main-content">
+          <Outlet />
+        </main>
+      </div>
+
       <Footer />
     </div>
   )

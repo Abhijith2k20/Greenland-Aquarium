@@ -4,10 +4,12 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { MessageCircle, X } from 'lucide-react'
 
 function enquireUrl(phone, item) {
-  const text = `Hi Greenland Aquarium, I'm interested in the ${item.name}${
-    item.price != null ? ` (₹${Number(item.price).toLocaleString('en-IN')})` : ''
-  }.`
-  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+  const bits = [
+    `Hi Greenland Aquarium, I'm interested in the ${item.name}`,
+    item.category ? `(${item.category})` : null,
+    item.price != null ? `— ₹${Number(item.price).toLocaleString('en-IN')}` : null,
+  ].filter(Boolean)
+  return `https://wa.me/${phone}?text=${encodeURIComponent(`${bits.join(' ')}. Can you confirm availability?`)}`
 }
 
 function useIsDesktop() {
@@ -45,7 +47,6 @@ export default function ProductSheet({ item, phone, onClose }) {
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
-      // Keep scroll locked until exit animation finishes (onExitComplete).
     }
   }, [item, onClose])
 
@@ -60,7 +61,6 @@ export default function ProductSheet({ item, phone, onClose }) {
       ? {
           initial: { opacity: 0, scale: 0.96, y: 10 },
           animate: { opacity: 1, scale: 1, y: 0 },
-          // Parent fades the whole layer — keep sheet settled so close stays crisp
           exit: { opacity: 1, scale: 1, y: 0 },
           transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] },
         }
@@ -127,9 +127,14 @@ export default function ProductSheet({ item, phone, onClose }) {
             </div>
 
             <div className="product-sheet__body">
-              {item.category ? (
-                <p className="product-sheet__category">{item.category}</p>
-              ) : null}
+              <div className="product-sheet__meta">
+                {item.category ? (
+                  <p className="product-sheet__category">{item.category}</p>
+                ) : null}
+                {item.waterType ? (
+                  <span className="product-sheet__pill">{item.waterType}</span>
+                ) : null}
+              </div>
 
               <h2 id="product-sheet-title" className="product-sheet__title">
                 {item.name}
@@ -143,8 +148,12 @@ export default function ProductSheet({ item, phone, onClose }) {
                 <p className="product-sheet__price product-sheet__price--ask">Price on request</p>
               )}
 
+              {item.description ? (
+                <p className="product-sheet__desc">{item.description}</p>
+              ) : null}
+
               <p className="product-sheet__note">
-                Available at our Horamavu store. Message us on WhatsApp to check stock and reserve.
+                Available at our Horamavu store. Message us on WhatsApp to confirm stock and reserve.
               </p>
 
               <a

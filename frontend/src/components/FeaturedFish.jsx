@@ -1,329 +1,248 @@
-import { useEffect, useRef, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, ArrowRight } from 'lucide-react'
 import { useContent } from '../context/ContentContext'
+import { FEATURED_FISH } from '../data/content'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
-import { scrollToY } from '../lib/lenisBridge'
+import ProductSheet from './ProductSheet'
 
-const CARD_COUNT = 3
+const BESTSELLER_COUNT = 12
+const SUPPLIES_COUNT = 12
 
-function flexForDist(dist) {
-  if (dist >= 2) return 0.55
-  if (dist <= 0) return 2.6
-  if (dist <= 1) return 2.6 + (1.35 - 2.6) * dist
-  return 1.35 + (0.55 - 1.35) * (dist - 1)
+const SUPPLY_CATEGORIES = ['Aquariums', 'Accessories', 'Pet Food', 'Live Plants']
+
+const LOCAL_SUPPLIES = FEATURED_FISH.filter((item) =>
+  SUPPLY_CATEGORIES.includes(item.category),
+).map((item, i) => ({
+  id: item.id || `local-supply-${i}`,
+  name: item.name,
+  category: item.category,
+  waterType: item.waterType || null,
+  description: item.description || '',
+  price: item.price ?? null,
+  image: item.image,
+}))
+
+function enquireUrl(phone, item) {
+  const bits = [
+    `Hi Greenland Aquarium, I'm interested in the ${item.name}`,
+    item.category ? `(${item.category})` : null,
+    item.price != null ? `— ₹${Number(item.price).toLocaleString('en-IN')}` : null,
+  ].filter(Boolean)
+  return `https://wa.me/${phone}?text=${encodeURIComponent(`${bits.join(' ')}.`)}`
+}
+
+function formatPrice(price) {
+  return `₹${Number(price).toLocaleString('en-IN')}`
+}
+
+/** Round-robin mix so tanks, accessories, food, plants alternate in the rail */
+function mixByCategory(items, categories, limit) {
+  const buckets = categories.map((cat) =>
+    items.filter((item) => item.category === cat),
+  )
+  const mixed = []
+  let i = 0
+  while (mixed.length < limit) {
+    let added = false
+    for (const bucket of buckets) {
+      if (bucket[i]) {
+        mixed.push(bucket[i])
+        added = true
+        if (mixed.length >= limit) break
+      }
+    }
+    if (!added) break
+    i += 1
+  }
+  return mixed
+}
+
+function StoreRail({ title, items, phone, onOpen, showCategory, moreTo, moreLabel }) {
+  if (!items.length) return null
+
+  return (
+    <div className="store-now__rail">
+      <div className="store-now__rail-head">
+        <h3 className="store-now__rail-title">{title}</h3>
+      </div>
+
+      <div className="store-now__strip">
+        {items.map((item, i) => (
+          <article key={item.id} className="store-now__card">
+            <button
+              type="button"
+              className="store-now__media"
+              onClick={() => onOpen(item)}
+              aria-label={item.name}
+            >
+              <img
+                src={item.image}
+                alt=""
+                className="store-now__img"
+                loading={i < 4 ? 'eager' : 'lazy'}
+                decoding="async"
+                draggable={false}
+              />
+            </button>
+
+            <div className="store-now__meta">
+              {showCategory && item.category ? (
+                <p className="store-now__cat">{item.category}</p>
+              ) : null}
+              <button
+                type="button"
+                className="store-now__name"
+                onClick={() => onOpen(item)}
+              >
+                {item.name}
+              </button>
+              {item.price != null ? (
+                <p className="store-now__price">{formatPrice(item.price)}</p>
+              ) : (
+                <p className="store-now__price store-now__price--ask">Price on request</p>
+              )}
+              <a
+                href={enquireUrl(phone, item)}
+                target="_blank"
+                rel="noreferrer"
+                className="store-now__enquire"
+              >
+                <MessageCircle size={14} aria-hidden />
+                Enquire
+              </a>
+            </div>
+          </article>
+        ))}
+
+        {moreTo ? (
+          <Link
+            to={moreTo}
+            onClick={() => prepareRouteChange()}
+            className="store-now__more"
+          >
+            <ArrowRight size={18} strokeWidth={2} aria-hidden />
+            <span>{moreLabel || 'More'}</span>
+          </Link>
+        ) : null}
+      </div>
+    </div>
+  )
 }
 
 export default function FeaturedFish() {
-  const { featuredFish, store } = useContent()
-  const items = (featuredFish || []).slice(0, CARD_COUNT)
+  const { featuredFish, collection, store } = useContent()
   const phone = store?.phoneRaw || '919611269901'
-  const [active, setActive] = useState(0)
-  const [reduced, setReduced] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
-  )
+  const [selected, setSelected] = useState(null)
+  const closeSheet = useCallback(() => setSelected(null), [])
 
-  const trackRef = useRef(null)
-  const panelRefs = useRef([])
-  const activeRef = useRef(0)
-  const userLockUntil = useRef(0)
-  const rafRef = useRef(0)
-
-  const lockUser = (ms = 900) => {
-    userLockUntil.current = Date.now() + ms
-  }
-
-  const syncPanelAttrs = (idx) => {
-    panelRefs.current.forEach((el, i) => {
-      if (!el) return
-      const dist = Math.abs(i - idx)
-      el.dataset.active = dist === 0 ? 'true' : 'false'
-      el.dataset.near = dist === 1 ? 'true' : 'false'
-      el.setAttribute('aria-pressed', dist === 0 ? 'true' : 'false')
-    })
-  }
-
-  useEffect(() => {
-    const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const deskMq = window.matchMedia('(min-width: 768px)')
-    const sync = () => {
-      setReduced(motionMq.matches)
-      setIsDesktop(deskMq.matches)
-    }
-    sync()
-    motionMq.addEventListener('change', sync)
-    deskMq.addEventListener('change', sync)
-    return () => {
-      motionMq.removeEventListener('change', sync)
-      deskMq.removeEventListener('change', sync)
-    }
-  }, [])
-
-  // Desktop only: sticky scroll morph
-  useEffect(() => {
-    if (!isDesktop || reduced || items.length < 2) return undefined
-
-    const track = trackRef.current
-    if (!track) return undefined
-
-    const apply = () => {
-      const total = Math.max(1, track.offsetHeight - window.innerHeight)
-      const top = track.getBoundingClientRect().top
-      const scrolled = Math.min(total, Math.max(0, -top))
-      const progress = scrolled / total
-      const pos = progress * (items.length - 1)
-
-      panelRefs.current.forEach((el, i) => {
-        if (!el) return
-        const next = flexForDist(Math.abs(i - pos))
-        // Skip tiny flex writes — each flexGrow change forces layout
-        const prev = Number(el.style.flexGrow || 0)
-        if (Math.abs(prev - next) > 0.02) {
-          el.style.flexGrow = String(next)
-        }
-      })
-
-      const idx = Math.min(items.length - 1, Math.round(pos))
-      if (idx !== activeRef.current && Date.now() >= userLockUntil.current) {
-        activeRef.current = idx
-        syncPanelAttrs(idx)
-        setActive(idx)
+  const bestsellers = useMemo(() => {
+    const byName = new Map((collection || []).map((c) => [c.name, c]))
+    const enrich = (f) => {
+      const match = byName.get(f.name)
+      return {
+        ...f,
+        category: f.category || match?.category || 'Fish',
+        price: f.price ?? match?.price ?? null,
+        description: f.description || match?.description || '',
+        waterType: f.waterType || match?.waterType || null,
       }
     }
 
-    const onScroll = () => {
-      if (rafRef.current) return
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = 0
-        apply()
-      })
-    }
+    const featured = (featuredFish || []).map(enrich)
+    const seen = new Set(featured.map((f) => f.id || f.name))
+    const moreFish = (collection || [])
+      .filter((c) => c.category === 'Fish' && !seen.has(c.id) && !seen.has(c.name))
+      .map(enrich)
 
-    apply()
-    syncPanelAttrs(activeRef.current)
-    // Window scroll is enough — Lenis already updates the document scroll position
-    window.addEventListener('scroll', onScroll, { passive: true })
+    return [...featured, ...moreFish].slice(0, BESTSELLER_COUNT)
+  }, [featuredFish, collection])
 
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [isDesktop, reduced, items.length])
+  const supplies = useMemo(() => {
+    const fromCms = (collection || []).filter((c) =>
+      SUPPLY_CATEGORIES.includes(c.category),
+    )
+    // CMS is mostly fish today — fill the mixed rail from local sample stock
+    const pool = fromCms.length >= 4 ? fromCms : [...fromCms, ...LOCAL_SUPPLIES]
+    const seen = new Set()
+    const unique = pool.filter((item) => {
+      const key = item.id || item.name
+      if (seen.has(key) || seen.has(item.name)) return false
+      seen.add(key)
+      seen.add(item.name)
+      return true
+    })
+    return mixByCategory(unique, SUPPLY_CATEGORIES, SUPPLIES_COUNT)
+  }, [collection])
 
-  if (!items.length) {
+  if (!bestsellers.length && !supplies.length) {
     return (
-      <section id="featured" className="section-pad relative py-20 sm:py-24">
+      <section id="bestsellers" className="section-pad relative py-20 sm:py-24">
         <div className="mx-auto max-w-7xl">
-          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">Featured</p>
+          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">In the store</p>
           <h2 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">
-            Species in the spotlight.
+            Bestsellers
           </h2>
           <p className="mt-4 max-w-md text-sm text-white/50">
-            Featured species will appear here once they’re added in the CMS.
+            Popular items will appear here once they’re added in the CMS.
           </p>
           <Link
             to="/collection"
             onClick={() => prepareRouteChange()}
             className="mt-6 inline-block text-sm text-blue transition hover:underline"
           >
-            View full collection →
+            Browse collection →
           </Link>
         </div>
       </section>
     )
   }
 
-  const steps = Math.max(1, items.length - 1)
-  const useSticky = isDesktop && !reduced
-
-  const goToCard = (i) => {
-    if (!isDesktop) return
-    lockUser()
-    activeRef.current = i
-    setActive(i)
-    syncPanelAttrs(i)
-
-    panelRefs.current.forEach((el, j) => {
-      if (!el) return
-      el.style.flexGrow = String(flexForDist(Math.abs(j - i)))
-    })
-
-    if (!useSticky || items.length < 2) return
-    const track = trackRef.current
-    if (!track) return
-    const total = Math.max(1, track.offsetHeight - window.innerHeight)
-    const top =
-      track.getBoundingClientRect().top + window.scrollY + (i / (items.length - 1)) * total
-    scrollToY(top)
-  }
-
-  const header = (
-    <div className="section-pad mx-auto max-w-7xl">
-      <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
-        <div className="max-w-2xl">
-          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">Featured</p>
-          <h2 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">
-            Species in the spotlight.
-          </h2>
-        </div>
-        <Link
-          to="/collection"
-          onClick={() => prepareRouteChange()}
-          className="text-sm text-blue transition hover:underline"
-        >
-          View full collection →
-        </Link>
-      </div>
-    </div>
-  )
-
-  // Mobile: static cards + native horizontal scroll only
-  if (!isDesktop) {
-    return (
-      <section id="featured" className="relative bg-[var(--bg)] py-16">
-        {header}
-        <div className="featured-mobile-strip">
-          {items.map((fish) => (
-            <article key={fish.id} className="featured-mobile-card">
-              <img
-                src={fish.image}
-                alt={fish.name}
-                className="featured-mobile-card__img"
-                loading="lazy"
-                decoding="async"
-                draggable={false}
-              />
-              <div className="featured-mobile-card__shade" aria-hidden />
-              <div className="featured-mobile-card__body">
-                <h3 className="featured-mobile-card__title">{fish.name}</h3>
-                <a
-                  href={`https://wa.me/${phone}?text=${encodeURIComponent(
-                    `Hi Greenland Aquarium, I'm interested in the ${fish.name}.`,
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="featured-mobile-card__cta"
-                >
-                  <MessageCircle size={13} color="#000000" />
-                  WhatsApp
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
   return (
-    <div
-      ref={trackRef}
-      className="relative"
-      style={useSticky ? { height: `${100 + steps * 90}vh` } : undefined}
-    >
-      <div
-        className={
-          useSticky
-            ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-16 lg:py-20'
-            : 'relative bg-[var(--bg)] py-16 sm:py-20'
-        }
-      >
-        <section id="featured" className="relative">
-          {header}
-
-          <div className="featured-strip flex h-[400px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2 lg:h-[460px]">
-            {items.map((fish, i) => {
-              const isActive = i === active
-              return (
-                <div
-                  key={fish.id}
-                  role="button"
-                  tabIndex={0}
-                  data-index={i}
-                  data-active={isActive ? 'true' : 'false'}
-                  data-near={Math.abs(i - active) === 1 ? 'true' : 'false'}
-                  ref={(el) => {
-                    panelRefs.current[i] = el
-                  }}
-                  onClick={() => goToCard(i)}
-                  onKeyDown={(e) => {
-                    if (e.target !== e.currentTarget) return
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      goToCard(i)
-                    }
-                  }}
-                  aria-pressed={isActive}
-                  aria-label={`${fish.name} — featured item${isActive ? '' : ', select to expand'}`}
-                  className="featured-panel relative h-full min-w-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint"
-                  style={{
-                    flexGrow: flexForDist(Math.abs(i - active)),
-                    flexBasis: 0,
-                    flexShrink: 1,
-                  }}
-                >
-                  <img
-                    src={fish.image}
-                    alt={fish.name}
-                    className="featured-panel__img pointer-events-none absolute inset-0 h-full w-full object-cover"
-                    loading={i === 0 ? 'eager' : 'lazy'}
-                    decoding="async"
-                    draggable={false}
-                  />
-                  <div className="featured-panel__shade pointer-events-none absolute inset-0" />
-
-                  <div className="featured-panel__near pointer-events-none absolute inset-x-0 bottom-0 p-4">
-                    <p className="mt-1 font-display text-base font-semibold text-white">{fish.name}</p>
-                  </div>
-
-                  <div className="featured-panel__far pointer-events-none absolute inset-0 flex items-end p-4">
-                    <span
-                      className="font-display text-sm font-semibold text-white"
-                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-                    >
-                      {fish.name}
-                    </span>
-                  </div>
-
-                  <div
-                    className="featured-panel__detail absolute inset-x-0 bottom-0 p-5 lg:p-6"
-                    aria-hidden={!isActive}
-                  >
-                    <h3 className="pointer-events-none font-display text-2xl font-semibold tracking-tight text-white lg:text-3xl">
-                      {fish.name}
-                    </h3>
-                    {fish.subtitle ? (
-                      <p className="pointer-events-none mt-2 text-sm italic text-white/50">
-                        {fish.subtitle}
-                      </p>
-                    ) : null}
-                    {fish.description ? (
-                      <p className="pointer-events-none mt-2 line-clamp-2 text-sm text-white/60">
-                        {fish.description}
-                      </p>
-                    ) : null}
-                    <a
-                      href={`https://wa.me/${phone}?text=${encodeURIComponent(
-                        `Hi Greenland Aquarium, I'm interested in the ${fish.name}.`,
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      tabIndex={isActive ? 0 : -1}
-                      onClick={(e) => e.stopPropagation()}
-                      className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#25d366] px-3.5 py-2 text-sm font-semibold transition hover:bg-[#20bd5a]"
-                      style={{ color: '#000000' }}
-                    >
-                      <MessageCircle size={13} color="#000000" />
-                      WhatsApp
-                    </a>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
+    <section id="bestsellers" className="store-now relative bg-[var(--bg)] py-16 md:py-24">
+      <div className="section-pad mx-auto max-w-7xl">
+        <div className="store-now__intro">
+          <p className="store-now__eyebrow">In the store now</p>
+          <h2 className="store-now__heading">Our Bestsellers</h2>
+          <p className="store-now__sub">
+            Popular picks from the Horamavu store — enquire on WhatsApp to check stock.
+          </p>
+        </div>
       </div>
-    </div>
+
+      <div className="store-now__rails">
+        <StoreRail
+          title="Bestsellers"
+          items={bestsellers}
+          phone={phone}
+          onOpen={setSelected}
+          moreTo="/collection?category=Fish"
+          moreLabel="More fish"
+        />
+        <StoreRail
+          title="Tanks & supplies"
+          items={supplies}
+          phone={phone}
+          onOpen={setSelected}
+          showCategory
+          moreTo="/collection"
+          moreLabel="See more"
+        />
+      </div>
+
+      <div className="section-pad mx-auto max-w-7xl">
+        <div className="store-now__footer">
+          <Link
+            to="/collection"
+            onClick={() => prepareRouteChange()}
+            className="store-now__footer-link"
+          >
+            Browse full collection →
+          </Link>
+        </div>
+      </div>
+
+      <ProductSheet item={selected} phone={phone} onClose={closeSheet} />
+    </section>
   )
 }

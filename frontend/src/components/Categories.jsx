@@ -162,7 +162,7 @@ export default function Categories() {
                     <span
                       className="mt-4 hidden translate-y-2 items-center rounded-full border border-white/25 bg-white/[0.04] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white opacity-0 backdrop-blur-sm transition duration-700 md:inline-flex md:group-hover:translate-y-0 md:group-hover:opacity-100"
                     >
-                      Explore
+                      Browse {cat.title}
                     </span>
                   </div>
                 </Link>

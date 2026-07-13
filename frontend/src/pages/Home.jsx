@@ -20,32 +20,36 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <Categories />
-      <Suspense fallback={<SectionFallback />}>
-        <Deferred>
-          <FeaturedFish />
-        </Deferred>
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Deferred>
-          <CustomAquarium />
-        </Deferred>
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Deferred>
-          <Services />
-        </Deferred>
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Deferred>
-          <Reviews />
-        </Deferred>
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Deferred>
-          <Visit />
-        </Deferred>
-      </Suspense>
+
+      {/* Opaque sheet scrolls over the sticky hero */}
+      <div className="home-sheet">
+        <Categories />
+        <Suspense fallback={<SectionFallback />}>
+          <Deferred>
+            <FeaturedFish />
+          </Deferred>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <Deferred>
+            <CustomAquarium />
+          </Deferred>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <Deferred>
+            <Services />
+          </Deferred>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <Deferred>
+            <Reviews />
+          </Deferred>
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <Deferred>
+            <Visit />
+          </Deferred>
+        </Suspense>
+      </div>
     </>
   )
 }

@@ -8,7 +8,8 @@ export default function Footer() {
   const { store } = useContent()
 
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-[#070707]">
+    <footer className="site-footer">
+      <div className="relative overflow-hidden border-t border-white/10 bg-[#070707]">
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 opacity-60">
         <svg viewBox="0 0 720 120" className="h-full w-full" preserveAspectRatio="none">
           <path
@@ -93,6 +94,7 @@ export default function Footer() {
 
       <div className="section-pad relative z-10 border-t border-white/5 py-5 text-center text-xs text-white/35">
         © {new Date().getFullYear()} Greenland Aquarium. All rights reserved.
+      </div>
       </div>
     </footer>
   )

@@ -30,7 +30,7 @@ export const STORE = {
 
 export const NAV_LINKS = [
   { label: 'Collection', href: '/collection' },
-  { label: 'Featured', href: '/#featured' },
+  { label: 'Bestsellers', href: '/#bestsellers' },
   { label: 'Services', href: '/#services' },
 ]
 
@@ -110,6 +110,7 @@ export const FEATURED_FISH = [
     waterType: 'Freshwater',
     care: 'Beginner',
     difficulty: 'Easy',
+    price: 450,
     description: 'Striking flowing fins and vibrant colors — ideal for a nano display.',
     image:
       'https://images.unsplash.com/photo-1504470695779-75300268aa0e?auto=format&fit=crop&w=800&q=80',
@@ -123,6 +124,7 @@ export const FEATURED_FISH = [
     waterType: 'Freshwater',
     care: 'Beginner',
     difficulty: 'Easy',
+    price: 80,
     description: 'Peaceful schooling fish with electric blue and red stripes.',
     image:
       'https://images.unsplash.com/photo-1535591273668-578e31182c4f?auto=format&fit=crop&w=800&q=80',
@@ -136,6 +138,7 @@ export const FEATURED_FISH = [
     waterType: 'Freshwater',
     care: 'Advanced',
     difficulty: 'Hard',
+    price: 2500,
     description: 'The king of freshwater aquariums — needs stable, warm water.',
     image:
       'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?auto=format&fit=crop&w=800&q=80',
@@ -175,6 +178,7 @@ export const FEATURED_FISH = [
     waterType: 'Marine',
     care: 'Intermediate',
     difficulty: 'Medium',
+    price: 1200,
     description: 'Iconic reef fish — pairs beautifully with anemones.',
     image:
       'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
@@ -214,6 +218,7 @@ export const FEATURED_FISH = [
     waterType: 'Freshwater',
     care: 'Beginner',
     difficulty: 'Easy',
+    price: 180,
     description: 'Low-light epiphyte — attach to driftwood or stone.',
     image:
       'https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=800&q=80',
@@ -227,6 +232,7 @@ export const FEATURED_FISH = [
     waterType: 'Freshwater',
     care: 'Beginner',
     difficulty: 'Easy',
+    price: 220,
     description: 'Hardy foreground/midground plant with thick leaves.',
     image:
       'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?auto=format&fit=crop&w=800&q=80',
@@ -240,6 +246,7 @@ export const FEATURED_FISH = [
     waterType: 'N/A',
     care: 'Beginner',
     difficulty: 'Easy',
+    price: 699,
     description: 'Natural wood pieces for layout structure and biofilm.',
     image:
       'https://images.unsplash.com/photo-1560275619-4662e36fa65c?auto=format&fit=crop&w=800&q=80',
@@ -253,9 +260,122 @@ export const FEATURED_FISH = [
     waterType: 'N/A',
     care: 'Beginner',
     difficulty: 'Easy',
+    price: 299,
     description: 'Balanced flake food for tropical community fish.',
     image:
       'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 13,
+    name: '60L Starter Aquarium',
+    species: 'Glass aquarium kit',
+    category: 'Aquariums',
+    waterType: 'Freshwater',
+    care: 'Beginner',
+    difficulty: 'Easy',
+    price: 4499,
+    description: 'Ready-to-set-up tank for community freshwater fish.',
+    image:
+      'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 14,
+    name: 'Nano Cube 30L',
+    species: 'Desktop aquarium',
+    category: 'Aquariums',
+    waterType: 'Freshwater',
+    care: 'Beginner',
+    difficulty: 'Easy',
+    price: 2899,
+    description: 'Compact cube tank for desks and small spaces.',
+    image:
+      'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 15,
+    name: 'External Canister Filter',
+    species: 'Filtration',
+    category: 'Accessories',
+    waterType: 'N/A',
+    care: 'Intermediate',
+    difficulty: 'Medium',
+    price: 5499,
+    description: 'Quiet multi-stage filter for mid-size aquariums.',
+    image:
+      'https://images.unsplash.com/photo-1559825481-12a05cc00344?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 16,
+    name: 'LED Aquarium Light',
+    species: 'Lighting',
+    category: 'Accessories',
+    waterType: 'N/A',
+    care: 'Beginner',
+    difficulty: 'Easy',
+    price: 1899,
+    description: 'Full-spectrum LED for plants and display colour.',
+    image:
+      'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 17,
+    name: 'Cichlid Pellets',
+    species: 'Species-specific food',
+    category: 'Pet Food',
+    waterType: 'N/A',
+    care: 'Beginner',
+    difficulty: 'Easy',
+    price: 449,
+    description: 'Sinking pellets formulated for African cichlids.',
+    image:
+      'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 18,
+    name: 'Frozen Bloodworms',
+    species: 'Treat food',
+    category: 'Pet Food',
+    waterType: 'N/A',
+    care: 'Beginner',
+    difficulty: 'Easy',
+    price: 199,
+    description: 'Protein-rich frozen treat for tropical fish.',
+    image:
+      'https://images.unsplash.com/photo-1535591273668-554a9b032c6d?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 19,
+    name: 'Amazon Sword',
+    species: 'Echinodorus bleheri',
+    category: 'Live Plants',
+    waterType: 'Freshwater',
+    care: 'Beginner',
+    difficulty: 'Easy',
+    price: 250,
+    description: 'Classic background plant with broad green leaves.',
+    image:
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=800&q=80',
+    featured: false,
+  },
+  {
+    id: 20,
+    name: 'Air Stone Kit',
+    species: 'Aeration',
+    category: 'Accessories',
+    waterType: 'N/A',
+    care: 'Beginner',
+    difficulty: 'Easy',
+    price: 349,
+    description: 'Quiet air pump with stone for oxygenation.',
+    image:
+      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=800&q=80',
     featured: false,
   },
 ]

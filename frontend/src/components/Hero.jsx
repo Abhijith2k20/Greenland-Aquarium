@@ -57,6 +57,7 @@ function HeroVisitCta({ href, children }) {
 
 export default function Hero() {
   const sectionRef = useRef(null)
+  const imageRef = useRef(null)
   const { store } = useContent()
   const tagline = store?.tagline || STORE.tagline
   const name = store?.name || STORE.name
@@ -64,18 +65,64 @@ export default function Hero() {
   useEffect(() => {
     const el = sectionRef.current
     if (!el) return undefined
-    // Kick CSS enter once after paint
+
     const id = requestAnimationFrame(() => el.classList.add('is-ready'))
-    return () => cancelAnimationFrame(id)
+
+    const pending = { current: null }
+    const moveRaf = { current: 0 }
+
+    const onMove = (e) => {
+      if (!imageRef.current) return
+      if (
+        window.matchMedia(
+          '(max-width: 767px), (pointer: coarse), (prefers-reduced-motion: reduce)',
+        ).matches
+      ) {
+        return
+      }
+
+      const rect = el.getBoundingClientRect()
+      const x = (e.clientX - rect.left) / rect.width - 0.5
+      const y = (e.clientY - rect.top) / rect.height - 0.5
+      pending.current = { x: x * 14, y: y * 10 }
+      if (moveRaf.current) return
+      moveRaf.current = requestAnimationFrame(() => {
+        moveRaf.current = 0
+        const p = pending.current
+        if (imageRef.current && p) {
+          imageRef.current.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`
+        }
+      })
+    }
+
+    const onLeave = () => {
+      pending.current = { x: 0, y: 0 }
+      if (imageRef.current) {
+        imageRef.current.style.transform = 'translate3d(0, 0, 0)'
+      }
+    }
+
+    el.addEventListener('mousemove', onMove, { passive: true })
+    el.addEventListener('mouseleave', onLeave)
+
+    return () => {
+      cancelAnimationFrame(id)
+      el.removeEventListener('mousemove', onMove)
+      el.removeEventListener('mouseleave', onLeave)
+      if (moveRaf.current) cancelAnimationFrame(moveRaf.current)
+    }
   }, [])
 
   return (
     <section
       ref={sectionRef}
       id="hero"
-      className="hero-section relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-black"
+      className="hero-section sticky top-0 z-0 flex min-h-[100svh] items-center justify-center overflow-hidden bg-black"
     >
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div
+        ref={imageRef}
+        className="hero-section__parallax absolute inset-0 flex items-center justify-center"
+      >
         <picture className="flex h-full w-full items-center justify-center">
           <source media="(min-width: 1024px)" srcSet={heroDesktop} />
           <source media="(min-width: 768px)" srcSet={heroTablet} />

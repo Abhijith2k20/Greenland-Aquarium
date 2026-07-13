@@ -13,6 +13,8 @@ const defaultCollection = FEATURED_FISH.map((f, i) => ({
   id: f.id || i,
   name: f.name,
   category: f.category || 'Fish',
+  waterType: f.waterType || null,
+  description: f.description || '',
   price: f.price ?? null,
   image: f.image,
 }))
@@ -22,6 +24,9 @@ const defaultFeatured = FEATURED_FISH.filter((f) => f.featured !== false).map((f
   name: f.name,
   subtitle: f.species || '',
   description: f.description || '',
+  category: f.category || 'Fish',
+  price: f.price ?? null,
+  waterType: f.waterType || null,
   image: f.image,
 }))
 
