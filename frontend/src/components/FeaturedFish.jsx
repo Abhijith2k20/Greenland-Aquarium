@@ -21,10 +21,11 @@ export default function FeaturedFish() {
   const [active, setActive] = useState(0)
   const [reduced, setReduced] = useState(false)
   const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true,
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
   )
 
   const trackRef = useRef(null)
+  const stripRef = useRef(null)
   const panelRefs = useRef([])
   const activeRef = useRef(0)
   const userLockUntil = useRef(0)
@@ -60,8 +61,9 @@ export default function FeaturedFish() {
     }
   }, [])
 
+  // Desktop only: sticky scroll morph
   useEffect(() => {
-    if (reduced || items.length < 2) return undefined
+    if (!isDesktop || reduced || items.length < 2) return undefined
 
     const track = trackRef.current
     if (!track) return undefined
@@ -75,12 +77,7 @@ export default function FeaturedFish() {
 
       panelRefs.current.forEach((el, i) => {
         if (!el) return
-        if (isDesktop) {
-          el.style.flexGrow = String(flexForDist(Math.abs(i - pos)))
-        } else {
-          const idxRound = Math.round(pos)
-          el.style.flexGrow = String(i === idxRound ? 4.2 : 0.72)
-        }
+        el.style.flexGrow = String(flexForDist(Math.abs(i - pos)))
       })
 
       const idx = Math.min(items.length - 1, Math.round(pos))
@@ -122,7 +119,48 @@ export default function FeaturedFish() {
       window.clearTimeout(stopAttach)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [reduced, items.length, isDesktop])
+  }, [isDesktop, reduced, items.length])
+
+  // Mobile: active card from horizontal snap scroll
+  useEffect(() => {
+    if (isDesktop) return undefined
+    const strip = stripRef.current
+    if (!strip) return undefined
+
+    let settleTimer = 0
+
+    const pickCentered = () => {
+      const mid = strip.scrollLeft + strip.clientWidth / 2
+      const panels = [...strip.querySelectorAll('[data-index]')]
+      let best = 0
+      let bestDist = Infinity
+      panels.forEach((panel) => {
+        const center = panel.offsetLeft + panel.offsetWidth / 2
+        const d = Math.abs(center - mid)
+        if (d < bestDist) {
+          bestDist = d
+          best = Number(panel.dataset.index)
+        }
+      })
+      if (best !== activeRef.current) {
+        activeRef.current = best
+        syncPanelAttrs(best)
+        setActive(best)
+      }
+    }
+
+    const onScroll = () => {
+      window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(pickCentered, 80)
+    }
+
+    strip.addEventListener('scroll', onScroll, { passive: true })
+    pickCentered()
+    return () => {
+      strip.removeEventListener('scroll', onScroll)
+      window.clearTimeout(settleTimer)
+    }
+  }, [isDesktop, items.length])
 
   if (!items.length) {
     return (
@@ -148,12 +186,7 @@ export default function FeaturedFish() {
   }
 
   const steps = Math.max(1, items.length - 1)
-  const useSticky = !reduced
-  const trackHeight = useSticky
-    ? isDesktop
-      ? `${100 + steps * 90}vh`
-      : `${100 + steps * 52}svh`
-    : undefined
+  const useSticky = isDesktop && !reduced
 
   const goToCard = (i) => {
     lockUser()
@@ -161,13 +194,19 @@ export default function FeaturedFish() {
     setActive(i)
     syncPanelAttrs(i)
 
+    if (!isDesktop) {
+      const strip = stripRef.current
+      const panel = strip?.querySelector(`[data-index="${i}"]`)
+      if (strip && panel) {
+        const left = panel.offsetLeft - (strip.clientWidth - panel.offsetWidth) / 2
+        strip.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
+      }
+      return
+    }
+
     panelRefs.current.forEach((el, j) => {
       if (!el) return
-      if (isDesktop) {
-        el.style.flexGrow = String(flexForDist(Math.abs(j - i)))
-      } else {
-        el.style.flexGrow = String(j === i ? 4.2 : 0.72)
-      }
+      el.style.flexGrow = String(flexForDist(Math.abs(j - i)))
     })
 
     if (!useSticky || items.length < 2) return
@@ -180,20 +219,24 @@ export default function FeaturedFish() {
   }
 
   return (
-    <div ref={trackRef} className="relative" style={trackHeight ? { height: trackHeight } : undefined}>
+    <div
+      ref={trackRef}
+      className="relative"
+      style={useSticky ? { height: `${100 + steps * 90}vh` } : undefined}
+    >
       <div
         className={
           useSticky
-            ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-10 sm:py-16 lg:py-20'
-            : 'relative py-20 sm:py-24'
+            ? 'sticky top-0 flex min-h-[100svh] flex-col justify-center bg-[var(--bg)] py-16 lg:py-20'
+            : 'relative bg-[var(--bg)] py-16 sm:py-20'
         }
       >
         <section id="featured" className="relative">
           <div className="section-pad mx-auto max-w-7xl">
-            <div className="mb-5 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
+            <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
               <div className="max-w-2xl">
-                <p className="mb-3 text-xs uppercase tracking-[0.3em] text-orange md:mb-4">Featured</p>
-                <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl md:text-6xl">
+                <p className="mb-4 text-xs uppercase tracking-[0.3em] text-orange">Featured</p>
+                <h2 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">
                   Species in the spotlight.
                 </h2>
               </div>
@@ -207,162 +250,111 @@ export default function FeaturedFish() {
             </div>
           </div>
 
-          {!isDesktop ? (
-            <div className="featured-m">
-              <div className="featured-m__strip">
-                {items.map((fish, i) => {
-                  const isActive = i === active
-                  return (
-                    <button
-                      key={fish.id}
-                      type="button"
-                      data-index={i}
-                      data-active={isActive ? 'true' : 'false'}
-                      ref={(el) => {
-                        panelRefs.current[i] = el
-                      }}
-                      onClick={() => goToCard(i)}
-                      aria-label={`${fish.name}${isActive ? '' : ', select to expand'}`}
-                      aria-pressed={isActive}
-                      className="featured-m__panel"
-                      style={{
-                        flexGrow: isActive ? 4.2 : 0.72,
-                        flexBasis: 0,
-                        flexShrink: 1,
-                      }}
-                    >
-                      <img
-                        src={fish.image}
-                        alt=""
-                        className="featured-m__img"
-                        loading={i === 0 ? 'eager' : 'lazy'}
-                        decoding="async"
-                        draggable={false}
-                      />
-                      <div className="featured-m__shade" aria-hidden />
+          <div
+            ref={stripRef}
+            className={
+              isDesktop
+                ? 'featured-strip flex h-[400px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2 lg:h-[460px]'
+                : 'flex h-[320px] gap-3 overflow-x-auto overscroll-x-contain px-[clamp(1.25rem,4vw,5rem)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] touch-pan-x snap-x snap-mandatory sm:h-[360px] [&::-webkit-scrollbar]:hidden'
+            }
+          >
+            {items.map((fish, i) => {
+              const isActive = i === active
+              return (
+                <div
+                  key={fish.id}
+                  role="button"
+                  tabIndex={0}
+                  data-index={i}
+                  data-active={isActive ? 'true' : 'false'}
+                  data-near={Math.abs(i - active) === 1 ? 'true' : 'false'}
+                  ref={(el) => {
+                    panelRefs.current[i] = el
+                  }}
+                  onClick={() => goToCard(i)}
+                  onKeyDown={(e) => {
+                    if (e.target !== e.currentTarget) return
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      goToCard(i)
+                    }
+                  }}
+                  aria-pressed={isActive}
+                  aria-label={`${fish.name} — featured item${isActive ? '' : ', select to expand'}`}
+                  className={
+                    isDesktop
+                      ? 'featured-panel relative h-full min-w-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint'
+                      : 'featured-panel relative h-full w-[min(68vw,260px)] shrink-0 cursor-pointer snap-center overflow-hidden rounded-[1.5rem] text-left contain-paint'
+                  }
+                  style={
+                    isDesktop
+                      ? {
+                          flexGrow: flexForDist(Math.abs(i - active)),
+                          flexBasis: 0,
+                          flexShrink: 1,
+                        }
+                      : undefined
+                  }
+                >
+                  <img
+                    src={fish.image}
+                    alt={fish.name}
+                    className="featured-panel__img pointer-events-none absolute inset-0 h-full w-full object-cover brightness-110"
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    draggable={false}
+                  />
+                  <div className="featured-panel__shade pointer-events-none absolute inset-0" />
 
-                      <span className="featured-m__spine-name" aria-hidden={isActive}>
-                        {fish.name}
-                      </span>
-
-                      <div className="featured-m__detail" aria-hidden={!isActive}>
-                        <h3 className="featured-m__title">{fish.name}</h3>
-                        {fish.subtitle ? <p className="featured-m__sub">{fish.subtitle}</p> : null}
-                        <a
-                          href={`https://wa.me/${phone}?text=${encodeURIComponent(
-                            `Hi Greenland Aquarium, I'm interested in the ${fish.name}.`,
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          tabIndex={isActive ? 0 : -1}
-                          onClick={(e) => e.stopPropagation()}
-                          className="featured-m__cta"
-                        >
-                          <MessageCircle size={13} color="#000000" />
-                          WhatsApp
-                        </a>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div className="featured-m__rail" aria-hidden>
-                {items.map((_, i) => (
-                  <span key={i} className={`featured-m__rail-seg ${i === active ? 'is-active' : ''}`} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="featured-strip flex h-[400px] gap-3 overflow-visible px-[clamp(1.25rem,4vw,5rem)] pb-2 lg:h-[460px]">
-              {items.map((fish, i) => {
-                const isActive = i === active
-                return (
-                  <div
-                    key={fish.id}
-                    data-index={i}
-                    data-active={isActive ? 'true' : 'false'}
-                    data-near={Math.abs(i - active) === 1 ? 'true' : 'false'}
-                    ref={(el) => {
-                      panelRefs.current[i] = el
-                    }}
-                    onClick={() => goToCard(i)}
-                    onKeyDown={(e) => {
-                      if (e.target !== e.currentTarget) return
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        goToCard(i)
-                      }
-                    }}
-                    tabIndex={0}
-                    aria-label={`${fish.name} — featured item${isActive ? '' : ', select to expand'}`}
-                    className="featured-panel relative h-full min-w-0 cursor-pointer overflow-hidden rounded-[1.5rem] text-left contain-paint"
-                    style={{
-                      flexGrow: flexForDist(Math.abs(i - active)),
-                      flexBasis: 0,
-                      flexShrink: 1,
-                    }}
-                  >
-                    <img
-                      src={fish.image}
-                      alt={fish.name}
-                      className="featured-panel__img pointer-events-none absolute inset-0 h-full w-full object-cover brightness-110"
-                      loading={i === 0 ? 'eager' : 'lazy'}
-                      decoding="async"
-                      draggable={false}
-                    />
-                    <div className="featured-panel__shade pointer-events-none absolute inset-0" />
-
-                    <div className="featured-panel__near pointer-events-none absolute inset-x-0 bottom-0 p-4">
-                      <p className="mt-1 font-display text-base font-semibold text-white">{fish.name}</p>
-                    </div>
-
-                    <div className="featured-panel__far pointer-events-none absolute inset-0 flex items-end p-4">
-                      <span
-                        className="font-display text-sm font-semibold text-white"
-                        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-                      >
-                        {fish.name}
-                      </span>
-                    </div>
-
-                    <div
-                      className="featured-panel__detail absolute inset-x-0 bottom-0 p-5 lg:p-6"
-                      aria-hidden={!isActive}
-                    >
-                      <h3 className="pointer-events-none font-display text-2xl font-semibold tracking-tight text-white lg:text-3xl">
-                        {fish.name}
-                      </h3>
-                      {fish.subtitle && (
-                        <p className="pointer-events-none mt-2 text-sm italic text-white/50">
-                          {fish.subtitle}
-                        </p>
-                      )}
-                      {fish.description && (
-                        <p className="pointer-events-none mt-2 line-clamp-2 text-sm text-white/60">
-                          {fish.description}
-                        </p>
-                      )}
-                      <a
-                        href={`https://wa.me/${phone}?text=${encodeURIComponent(
-                          `Hi Greenland Aquarium, I'm interested in the ${fish.name}.`,
-                        )}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        tabIndex={isActive ? 0 : -1}
-                        onClick={(e) => e.stopPropagation()}
-                        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#25d366] px-3.5 py-2 text-sm font-semibold transition hover:bg-[#20bd5a]"
-                        style={{ color: '#000000' }}
-                      >
-                        <MessageCircle size={13} color="#000000" />
-                        WhatsApp
-                      </a>
-                    </div>
+                  <div className="featured-panel__near pointer-events-none absolute inset-x-0 bottom-0 p-4">
+                    <p className="mt-1 font-display text-base font-semibold text-white">{fish.name}</p>
                   </div>
-                )
-              })}
-            </div>
-          )}
+
+                  <div className="featured-panel__far pointer-events-none absolute inset-0 flex items-end p-4">
+                    <span
+                      className="font-display text-sm font-semibold text-white"
+                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                    >
+                      {fish.name}
+                    </span>
+                  </div>
+
+                  <div
+                    className="featured-panel__detail absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6"
+                    aria-hidden={!isActive}
+                  >
+                    <h3 className="pointer-events-none font-display text-xl font-semibold tracking-tight text-white sm:text-2xl lg:text-3xl">
+                      {fish.name}
+                    </h3>
+                    {isDesktop && fish.subtitle ? (
+                      <p className="pointer-events-none mt-2 text-sm italic text-white/50">
+                        {fish.subtitle}
+                      </p>
+                    ) : null}
+                    {isDesktop && fish.description ? (
+                      <p className="pointer-events-none mt-2 line-clamp-2 text-sm text-white/60">
+                        {fish.description}
+                      </p>
+                    ) : null}
+                    <a
+                      href={`https://wa.me/${phone}?text=${encodeURIComponent(
+                        `Hi Greenland Aquarium, I'm interested in the ${fish.name}.`,
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      tabIndex={isActive ? 0 : -1}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-3 inline-flex items-center gap-1 rounded-full bg-[#25d366] px-2.5 py-1.5 text-[11px] font-semibold transition hover:bg-[#20bd5a] sm:mt-4 sm:gap-1.5 sm:px-3.5 sm:py-2 sm:text-sm"
+                      style={{ color: '#000000' }}
+                    >
+                      <MessageCircle size={13} color="#000000" />
+                      WhatsApp
+                    </a>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </section>
       </div>
     </div>
