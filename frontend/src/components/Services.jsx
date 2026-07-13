@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { MessageCircle } from 'lucide-react'
 import { useContent } from '../context/ContentContext'
 import { scrollToY } from '../lib/lenisBridge'
 import setupImg from '../assets/services/setup.jpg'
@@ -12,14 +13,21 @@ const SERVICE_IMAGES = {
 }
 
 const SERVICE_ACCENTS = {
-  1: { glow: 'rgba(79, 195, 247, 0.22)', tint: '#4fc3f7' },
-  2: { glow: 'rgba(46, 204, 113, 0.2)', tint: '#2ecc71' },
-  3: { glow: 'rgba(126, 200, 240, 0.18)', tint: '#7ec8f0' },
+  1: { glow: 'rgba(79, 195, 247, 0.1)', tint: '#4fc3f7' },
+  2: { glow: 'rgba(46, 204, 113, 0.08)', tint: '#2ecc71' },
+  3: { glow: 'rgba(126, 200, 240, 0.08)', tint: '#7ec8f0' },
+}
+
+function serviceEnquireUrl(phone, title) {
+  return `https://wa.me/${phone}?text=${encodeURIComponent(
+    `Hi Greenland Aquarium, I'd like to know more about your ${title} service.`,
+  )}`
 }
 
 export default function Services() {
-  const { services } = useContent()
+  const { services, store } = useContent()
   const items = Array.isArray(services) ? services.slice(0, 3) : []
+  const phone = store?.phoneRaw || '919611269901'
   const trackRef = useRef(null)
   const stageRef = useRef(null)
   const [active, setActive] = useState(0)
@@ -110,6 +118,15 @@ export default function Services() {
                   ) : null}
                   <h3 className="mt-5 font-display text-2xl font-semibold">{service.title}</h3>
                   <p className="mt-3 text-white/55">{service.description}</p>
+                  <a
+                    href={serviceEnquireUrl(phone, service.title)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="services-cta mt-5"
+                  >
+                    <MessageCircle size={15} strokeWidth={2} aria-hidden />
+                    Enquire on WhatsApp
+                  </a>
                 </div>
               )
             })}
@@ -210,6 +227,15 @@ export default function Services() {
                   <div className="services-m__copy">
                     <h3 className="services-m__title">{activeItem.title}</h3>
                     <p className="services-m__desc">{activeItem.description}</p>
+                    <a
+                      href={serviceEnquireUrl(phone, activeItem.title)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="services-cta services-cta--mobile"
+                    >
+                      <MessageCircle size={14} strokeWidth={2} aria-hidden />
+                      Enquire on WhatsApp
+                    </a>
                     <div className="services-m__progress" aria-hidden>
                       <span
                         className="services-m__progress-fill"
@@ -236,6 +262,17 @@ export default function Services() {
                       >
                         <h3 className="services-card__title">{service.title}</h3>
                         <p className="services-card__desc">{service.description}</p>
+                        {i === active ? (
+                          <a
+                            href={serviceEnquireUrl(phone, service.title)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="services-cta"
+                          >
+                            <MessageCircle size={15} strokeWidth={2} aria-hidden />
+                            Enquire on WhatsApp
+                          </a>
+                        ) : null}
                       </article>
                     ))}
 
