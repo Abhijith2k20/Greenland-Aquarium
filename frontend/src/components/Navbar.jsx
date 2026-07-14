@@ -1,36 +1,17 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Menu, X, ArrowUpRight } from 'lucide-react'
 import { NAV_LINKS } from '../data/content'
 import { useContent } from '../context/ContentContext'
-import { prepareRouteChange } from '../lib/prepareRouteChange'
 import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
 import NavSearch from './NavSearch'
-import { scrollToSection } from '../lib/lenisBridge'
 
 const MOBILE_LINKS = [
   ...NAV_LINKS,
   { label: 'Visit Store', href: '/#visit' },
   { label: 'Custom Aquarium', href: '/#custom' },
 ]
-
-function goTo(navigate, href) {
-  prepareRouteChange()
-  if (href.startsWith('/#')) {
-    const id = href.slice(2)
-    navigate({ pathname: '/', hash: `#${id}` })
-    window.setTimeout(() => scrollToSection(id, { offset: -90 }), 80)
-    return
-  }
-  if (href.startsWith('#')) {
-    const id = href.slice(1)
-    navigate({ pathname: '/', hash: href })
-    window.setTimeout(() => scrollToSection(id, { offset: -90 }), 80)
-    return
-  }
-  navigate(href)
-}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -40,7 +21,6 @@ export default function Navbar() {
   )
   const { store } = useContent()
   const location = useLocation()
-  const navigate = useNavigate()
   const isHome = location.pathname === '/'
 
   useEffect(() => {
@@ -90,13 +70,6 @@ export default function Navbar() {
   }, [open])
 
   const closeMenu = () => setOpen(false)
-
-  const onMobileNav = (href) => (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    closeMenu()
-    window.setTimeout(() => goTo(navigate, href), 140)
-  }
 
   const socialLinkClass =
     'flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-white/30 hover:text-white'
@@ -183,15 +156,15 @@ export default function Navbar() {
             <div className="mobile-nav-panel">
               <nav className="flex flex-col">
                 {MOBILE_LINKS.map((link) => (
-                  <a
+                  <AppLink
                     key={link.href}
                     href={link.href}
-                    onClick={onMobileNav(link.href)}
+                    onClick={closeMenu}
                     data-cursor="hover"
                     className="mobile-nav-panel__link"
                   >
                     {link.label}
-                  </a>
+                  </AppLink>
                 ))}
               </nav>
 

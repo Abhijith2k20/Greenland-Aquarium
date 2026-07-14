@@ -43,9 +43,12 @@ export default function AppLink({ href, to, children, onClick, className, ...pro
 
     const id = hashFromPath(path)
     if (id) {
+      const scroll = () => scrollToSection(id, { offset: -90 })
       navigate({ pathname: '/', hash: `#${id}` })
-      // Scroll immediately too — Layout effect can miss lazy sections / same-hash clicks
-      window.setTimeout(() => scrollToSection(id, { offset: -90 }), 60)
+      // Scroll on the next frames too: same-hash clicks can be a router no-op, and Home
+      // sections may still be lazy-loading immediately after route changes.
+      window.setTimeout(scroll, 0)
+      window.setTimeout(scroll, 120)
       return
     }
 

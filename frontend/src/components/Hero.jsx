@@ -4,7 +4,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { STORE } from '../data/content'
 import { useContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
-import { scrollToSection } from '../lib/lenisBridge'
+import AppLink from './AppLink'
 import heroDesktop from '../assets/hero-desktop.webp'
 import heroTablet from '../assets/hero-tablet.webp'
 import heroMobile from '../assets/hero-mobile.webp'
@@ -33,23 +33,13 @@ function HeroDiveCta({ to }) {
 }
 
 function HeroVisitCta({ href, children }) {
-  const navigate = useNavigate()
-  const id = href.replace(/^#/, '')
-
   return (
-    <a
+    <AppLink
       href={href}
       className="hero-rail__link"
-      onClick={(e) => {
-        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-        e.preventDefault()
-        prepareRouteChange()
-        navigate({ pathname: '/', hash: href })
-        window.setTimeout(() => scrollToSection(id, { offset: -90 }), 60)
-      }}
     >
       {children}
-    </a>
+    </AppLink>
   )
 }
 
@@ -157,7 +147,7 @@ export default function Hero() {
         <div className="hero-rail">
           <div className="hero-rail__actions">
             <HeroDiveCta to="/collection" />
-            <HeroVisitCta href="#visit">Visit the store</HeroVisitCta>
+            <HeroVisitCta href="/#visit">Visit the store</HeroVisitCta>
           </div>
 
           <div className="hero-rail__copy">

@@ -9,10 +9,7 @@ export default function Reviews() {
 
   useEffect(() => {
     if (n < 2) return undefined
-    if (
-      window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 767px), (pointer: coarse)')
-        .matches
-    ) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return undefined
     }
     const id = window.setInterval(() => {
