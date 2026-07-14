@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { useContent } from '../context/ContentContext'
-import setupImg from '../assets/services/setup.jpg'
-import aquascapeImg from '../assets/services/aquascape.jpg'
-import maintenanceImg from '../assets/services/maintenance.jpg'
+import setupImg from '../assets/services/setup.webp'
+import aquascapeImg from '../assets/services/aquascape.webp'
+import maintenanceImg from '../assets/services/maintenance.webp'
 
 const SERVICE_IMAGES = {
   1: setupImg,

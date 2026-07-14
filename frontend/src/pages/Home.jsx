@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import Hero from '../components/Hero'
-import Categories from '../components/Categories'
 
+const Categories = lazy(() => import('../components/Categories'))
 const FeaturedFish = lazy(() => import('../components/FeaturedFish'))
 const CustomAquarium = lazy(() => import('../components/CustomAquarium'))
 const Services = lazy(() => import('../components/Services'))
@@ -23,7 +23,9 @@ export default function Home() {
 
       {/* Opaque sheet scrolls over the sticky hero */}
       <div className="home-sheet">
-        <Categories />
+        <Suspense fallback={<SectionFallback />}>
+          <Categories />
+        </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <Deferred>
             <FeaturedFish />
