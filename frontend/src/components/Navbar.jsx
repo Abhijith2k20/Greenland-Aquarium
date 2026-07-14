@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, ArrowUpRight } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { NAV_LINKS } from '../data/content'
 import { useContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
@@ -173,76 +172,67 @@ export default function Navbar() {
           )}
         </nav>
 
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              key="mobile-nav-panel"
-              id="mobile-nav"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navigation"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-[70] mx-auto mt-2 max-w-7xl lg:hidden"
-            >
-              <div className="mobile-nav-panel">
-                <nav className="flex flex-col">
-                  {MOBILE_LINKS.map((link) => (
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      onClick={onMobileNav(link.href)}
-                      data-cursor="hover"
-                      className="mobile-nav-panel__link"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                </nav>
-
-                <div className="mobile-nav-panel__footer">
-                  <SocialLinks
-                    socials={store?.socials}
-                    iconSize={15}
-                    linkClassName={socialLinkClass}
-                  />
+        {open && (
+          <div
+            id="mobile-nav"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation"
+            className="mobile-nav-shell relative z-[70] mx-auto mt-2 max-w-7xl lg:hidden"
+          >
+            <div className="mobile-nav-panel">
+              <nav className="flex flex-col">
+                {MOBILE_LINKS.map((link) => (
                   <a
-                    href={store?.whatsapp || `https://wa.me/${store?.phoneRaw || '919611269901'}`}
-                    target="_blank"
-                    rel="noreferrer"
+                    key={link.href}
+                    href={link.href}
+                    onClick={onMobileNav(link.href)}
                     data-cursor="hover"
-                    className="hero-cta__dive hero-cta__dive--nav hero-cta__dive--whatsapp"
-                    onClick={closeMenu}
+                    className="mobile-nav-panel__link"
                   >
-                    <span className="hero-cta__ripple" aria-hidden />
-                    <span className="hero-cta__ripple hero-cta__ripple--delay" aria-hidden />
-                    <span className="hero-cta__label">WhatsApp</span>
-                    <ArrowUpRight className="hero-cta__arrow" size={13} strokeWidth={2.25} aria-hidden />
+                    {link.label}
                   </a>
-                </div>
+                ))}
+              </nav>
+
+              <div className="mobile-nav-panel__footer">
+                <SocialLinks
+                  socials={store?.socials}
+                  iconSize={15}
+                  linkClassName={socialLinkClass}
+                />
+                <a
+                  href={store?.whatsapp || `https://wa.me/${store?.phoneRaw || '919611269901'}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor="hover"
+                  className="hero-cta__dive hero-cta__dive--nav hero-cta__dive--whatsapp"
+                  onClick={closeMenu}
+                >
+                  <span className="hero-cta__ripple" aria-hidden />
+                  <span className="hero-cta__ripple hero-cta__ripple--delay" aria-hidden />
+                  <span className="hero-cta__label">WhatsApp</span>
+                  <ArrowUpRight
+                    className="hero-cta__arrow"
+                    size={13}
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                </a>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+        )}
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.button
-            key="mobile-nav-scrim"
-            type="button"
-            aria-label="Close menu"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="mobile-nav-scrim fixed inset-0 z-[60] lg:hidden"
-            onClick={closeMenu}
-          />
-        )}
-      </AnimatePresence>
+      {open && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="mobile-nav-scrim fixed inset-0 z-[60] lg:hidden"
+          onClick={closeMenu}
+        />
+      )}
     </header>
   )
 }

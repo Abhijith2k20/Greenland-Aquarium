@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import { STORE } from '../data/content'
 import { useContent } from '../context/ContentContext'
@@ -155,12 +154,7 @@ export default function Hero() {
       </h1>
 
       <div className="section-pad relative z-20 flex min-h-[100svh] w-full max-w-[1400px] flex-col justify-end pb-10 pt-24 md:pb-16 md:pt-28">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="hero-rail"
-        >
+        <div className="hero-rail">
           <div className="hero-rail__actions">
             <HeroDiveCta to="/collection" />
             <HeroVisitCta href="#visit">Visit the store</HeroVisitCta>
@@ -172,7 +166,7 @@ export default function Hero() {
               Premium exotic fish, custom aquariums & living aquascapes in Bengaluru.
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

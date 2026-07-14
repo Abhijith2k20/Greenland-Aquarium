@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { MapPin, Phone, Clock, Navigation, MessageCircle } from 'lucide-react'
 import MagneticButton from './MagneticButton'
 import { useContent } from '../context/ContentContext'
@@ -103,13 +102,7 @@ export default function Visit() {
       />
 
       <div className="relative mx-auto max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
-          className="mb-10 md:mb-12"
-        >
+        <div className="mb-10 md:mb-12">
           <p className="mb-4 text-xs uppercase tracking-[0.3em] text-green">Visit</p>
           <h2 className="max-w-xl font-display text-4xl font-semibold tracking-tight md:text-6xl">
             Visit our store.
@@ -117,17 +110,11 @@ export default function Visit() {
           <p className="mt-4 max-w-lg text-sm text-white/50 md:text-base">
             Find us in Horamavu — or send a message and we’ll help you plan your visit.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid gap-8 lg:grid-cols-5 lg:gap-10">
           {/* Contact + map */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="space-y-5 lg:col-span-2"
-          >
+          <div className="space-y-5 lg:col-span-2">
             <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0a0e11] p-6 sm:p-7">
               <div className="flex gap-3">
                 <MapPin className="mt-0.5 shrink-0 text-blue" size={20} />
@@ -194,15 +181,11 @@ export default function Visit() {
                 referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
-          </motion.div>
+          </div>
 
           {/* Clear contact form */}
-          <motion.form
+          <form
             onSubmit={onSubmit}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55, delay: 0.08 }}
             className="rounded-2xl border border-white/10 bg-[#0a0e11] p-6 sm:p-8 lg:col-span-3"
           >
             <h3 className="font-display text-2xl font-semibold tracking-tight">Message on WhatsApp</h3>
@@ -281,7 +264,7 @@ export default function Visit() {
                 {loading ? 'Opening…' : 'Continue on WhatsApp'}
               </MagneticButton>
             </div>
-          </motion.form>
+          </form>
         </div>
       </div>
     </section>
