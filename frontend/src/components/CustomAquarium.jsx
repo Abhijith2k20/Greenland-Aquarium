@@ -1,5 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
-import experienceBg from '../assets/experience-bg.jpg'
+import experienceBgDesktop from '../assets/experience-bg-desktop.webp'
+import experienceBgMobile from '../assets/experience-bg-mobile.webp'
 import { useContent } from '../context/ContentContext'
 
 export default function CustomAquarium() {
@@ -12,15 +13,24 @@ export default function CustomAquarium() {
 
   return (
     <section id="custom" className="relative min-h-[100svh] overflow-hidden">
-      <div className="absolute inset-0">
-        <img
-          src={experienceBg}
-          alt=""
-          aria-hidden
-          className="h-full w-full object-cover object-center"
-          loading="lazy"
-          decoding="async"
-        />
+      <div className="absolute inset-0 flex items-center justify-center bg-black">
+        <picture className="flex h-full w-full items-center justify-center">
+          <source
+            type="image/webp"
+            media="(min-width: 1024px)"
+            srcSet={experienceBgDesktop}
+          />
+          <img
+            src={experienceBgMobile}
+            alt=""
+            aria-hidden
+            className="h-auto w-auto max-h-[100svh] max-w-full object-contain object-center lg:h-full lg:w-full lg:max-h-none lg:object-cover"
+            width={944}
+            height={1232}
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
         <div className="absolute inset-0 bg-black/10" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#050505]/30 via-transparent to-[#050505]/45" />
       </div>
