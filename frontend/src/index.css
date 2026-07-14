@@ -1402,6 +1402,9 @@ img {
 }
 
 /* Sticky mobile category chips */
+/* No backdrop-filter here — this bar sits over the scrolling product grid,
+   so a blur would recomposite on every scroll frame. Background is already
+   88-97% opaque, so the blur bought almost nothing visually anyway. */
 .collection-cats-sticky {
   position: sticky;
   top: 4.75rem;
@@ -1409,8 +1412,6 @@ img {
   margin: 0 0 1.25rem;
   padding: 0.65rem 0 0.75rem;
   background: linear-gradient(180deg, rgba(7, 9, 11, 0.97) 55%, rgba(7, 9, 11, 0.88) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Product detail sheet */
@@ -1951,8 +1952,12 @@ img {
   opacity: 1;
 }
 
-.hero-section__parallax {
-  will-change: transform;
+/* Parallax JS only attaches on desktop with a fine pointer and no reduced-motion
+   preference (see Hero.jsx) — don't hold a GPU layer alive everywhere else for it. */
+@media (min-width: 768px) and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hero-section__parallax {
+    will-change: transform;
+  }
 }
 
 .hero-section__img {
