@@ -1337,11 +1337,12 @@ img {
 }
 
 .product-sheet-root .product-sheet-scrim {
-  animation: productSheetScrimIn 0.18s ease-out both;
+  animation: productSheetScrimIn 0.32s ease-out both;
 }
 
 .product-sheet-root--mobile .product-sheet {
-  animation: productSheetMobileIn 0.2s cubic-bezier(0.32, 0.72, 0, 1) both;
+  /* Slightly longer ease-out feels smoother on mobile; transform-only stays cheap */
+  animation: productSheetMobileIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
   will-change: transform;
 }
 
