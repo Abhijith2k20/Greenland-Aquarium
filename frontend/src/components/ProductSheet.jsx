@@ -36,6 +36,9 @@ export default function ProductSheet({ item, phone, onClose }) {
   const reduced = useReducedMotion()
   const desktop = useIsDesktop()
   const open = Boolean(item)
+  const Root = desktop ? motion.div : 'div'
+  const Scrim = desktop ? motion.button : 'button'
+  const Panel = desktop ? motion.div : 'div'
 
   const waHref = useMemo(
     () => (item ? enquireUrl(phone, item) : '#'),
@@ -124,102 +127,104 @@ export default function ProductSheet({ item, phone, onClose }) {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
   }, [open, onClose])
 
-  return createPortal(
-    <AnimatePresence
-      onExitComplete={() => {
-        document.body.style.overflow = ''
-      }}
+  const rootProps = desktop
+    ? {
+        variants: variants.root,
+        initial: 'closed',
+        animate: 'open',
+        exit: 'closed',
+      }
+    : {}
+  const scrimProps = desktop ? { variants: variants.scrim } : {}
+  const panelProps = desktop ? { variants: variants.panel } : {}
+
+  const sheet = item ? (
+    <Root
+      key="product-sheet"
+      className={`product-sheet-root${
+        desktop ? ' product-sheet-root--desktop' : ' product-sheet-root--mobile'
+      }`}
+      {...rootProps}
     >
-      {open ? (
-        <motion.div
-          key="product-sheet"
-          className={`product-sheet-root${desktop ? ' product-sheet-root--desktop' : ''}`}
-          variants={variants.root}
-          initial="closed"
-          animate="open"
-          exit="closed"
+      <Scrim
+        type="button"
+        aria-label="Close product details"
+        className="product-sheet-scrim"
+        onClick={onClose}
+        {...scrimProps}
+      />
+
+      <Panel
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-sheet-title"
+        className="product-sheet"
+        {...panelProps}
+      >
+        <div className="product-sheet__handle" aria-hidden />
+
+        <button
+          type="button"
+          className="product-sheet__close"
+          onClick={onClose}
+          aria-label="Close"
         >
-          <motion.button
-            type="button"
-            aria-label="Close product details"
-            className="product-sheet-scrim"
-            onClick={onClose}
-            variants={variants.scrim}
+          <X size={18} strokeWidth={2} />
+        </button>
+
+        <div className="product-sheet__media">
+          <img
+            src={item.image}
+            alt={item.name}
+            decoding="async"
+            loading="eager"
+            draggable={false}
           />
+        </div>
 
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="product-sheet-title"
-            className="product-sheet"
-            variants={variants.panel}
-          >
-            <div className="product-sheet__handle" aria-hidden />
+        <div className="product-sheet__body">
+          <div className="product-sheet__meta">
+            {item.category ? <p className="product-sheet__category">{item.category}</p> : null}
+            {item.waterType ? <span className="product-sheet__pill">{item.waterType}</span> : null}
+          </div>
 
-            <button
-              type="button"
-              className="product-sheet__close"
-              onClick={onClose}
-              aria-label="Close"
-            >
-              <X size={18} strokeWidth={2} />
-            </button>
+          <h2 id="product-sheet-title" className="product-sheet__title">
+            {item.name}
+          </h2>
 
-            <div className="product-sheet__media">
-              <img
-                src={item.image}
-                alt={item.name}
-                decoding="async"
-                loading="eager"
-                draggable={false}
-              />
-            </div>
+          {item.price != null ? (
+            <p className="product-sheet__price">₹{Number(item.price).toLocaleString('en-IN')}</p>
+          ) : (
+            <p className="product-sheet__price product-sheet__price--ask">Price on request</p>
+          )}
 
-            <div className="product-sheet__body">
-              <div className="product-sheet__meta">
-                {item.category ? (
-                  <p className="product-sheet__category">{item.category}</p>
-                ) : null}
-                {item.waterType ? (
-                  <span className="product-sheet__pill">{item.waterType}</span>
-                ) : null}
-              </div>
+          {item.description ? <p className="product-sheet__desc">{item.description}</p> : null}
 
-              <h2 id="product-sheet-title" className="product-sheet__title">
-                {item.name}
-              </h2>
+          <p className="product-sheet__note">
+            Available at our Horamavu store. Message us on WhatsApp to confirm stock and reserve.
+          </p>
 
-              {item.price != null ? (
-                <p className="product-sheet__price">
-                  ₹{Number(item.price).toLocaleString('en-IN')}
-                </p>
-              ) : (
-                <p className="product-sheet__price product-sheet__price--ask">
-                  Price on request
-                </p>
-              )}
+          <a href={waHref} target="_blank" rel="noreferrer" className="product-sheet__cta">
+            <MessageCircle size={18} strokeWidth={2} aria-hidden />
+            Enquire on WhatsApp
+          </a>
+        </div>
+      </Panel>
+    </Root>
+  ) : null
 
-              {item.description ? (
-                <p className="product-sheet__desc">{item.description}</p>
-              ) : null}
+  if (!desktop) {
+    return open ? createPortal(sheet, document.body) : null
+  }
 
-              <p className="product-sheet__note">
-                Available at our Horamavu store. Message us on WhatsApp to confirm stock and
-                reserve.
-              </p>
-
-              <a href={waHref} target="_blank" rel="noreferrer" className="product-sheet__cta">
-                <MessageCircle size={18} strokeWidth={2} aria-hidden />
-                Enquire on WhatsApp
-              </a>
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>,
+  return createPortal(
+    <AnimatePresence>{open ? sheet : null}</AnimatePresence>,
     document.body,
   )
 }
