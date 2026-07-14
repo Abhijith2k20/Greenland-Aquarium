@@ -3,6 +3,7 @@ import { NAV_LINKS } from '../data/content'
 import { useStaticContent } from '../context/ContentContext'
 import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
+import logo from '../assets/logo.webp'
 
 export default function Footer() {
   const { store } = useStaticContent()
@@ -30,9 +31,15 @@ export default function Footer() {
       <div className="section-pad relative z-10 mx-auto grid max-w-7xl gap-10 py-16 md:grid-cols-3">
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue to-green font-bold text-[#041018]">
-              GA
-            </span>
+            <img
+              src={logo}
+              alt=""
+              className="h-10 w-10 shrink-0 rounded-full object-cover"
+              width={40}
+              height={40}
+              loading="lazy"
+              decoding="async"
+            />
             <div>
               <p className="font-display text-xl font-semibold">{store.name}</p>
               <p className="text-sm text-white/50 italic">{store.tagline}</p>

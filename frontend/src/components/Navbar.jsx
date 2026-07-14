@@ -6,6 +6,7 @@ import { useStaticContent } from '../context/ContentContext'
 import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
 import NavSearch from './NavSearch'
+import logo from '../assets/logo.webp'
 
 const MOBILE_LINKS = [
   ...NAV_LINKS,
@@ -95,9 +96,14 @@ export default function Navbar() {
             data-cursor="hover"
             onClick={closeMenu}
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue to-green text-sm font-bold leading-none text-[#041018] lg:h-9 lg:w-9">
-              GA
-            </span>
+            <img
+              src={logo}
+              alt=""
+              className="h-10 w-10 shrink-0 rounded-full object-cover lg:h-9 lg:w-9"
+              width={40}
+              height={40}
+              decoding="async"
+            />
             <span className="hidden truncate font-display text-lg font-semibold leading-none tracking-tight lg:inline">
               {store?.name || 'Greenland Aquarium'}
             </span>
