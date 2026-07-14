@@ -75,17 +75,30 @@ function StoreRail({ title, items, phone, onOpen, showCategory, moreTo, moreLabe
     const el = stripRef.current
     if (!el) return undefined
 
+    // RAF-throttled: a raw scroll listener here forces a layout read
+    // (scrollWidth/clientWidth) on every native scroll event, which fights
+    // the browser's own momentum-scroll compositing during a swipe.
+    let raf = 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        updateArrows()
+      })
+    }
+
     updateArrows()
-    el.addEventListener('scroll', updateArrows, { passive: true })
+    el.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', updateArrows)
 
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateArrows) : null
     ro?.observe(el)
 
     return () => {
-      el.removeEventListener('scroll', updateArrows)
+      el.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', updateArrows)
       ro?.disconnect()
+      if (raf) cancelAnimationFrame(raf)
     }
   }, [items, updateArrows])
 
