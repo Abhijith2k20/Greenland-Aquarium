@@ -2,7 +2,7 @@ import { memo, useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { COLLECTION_CATEGORIES } from '../data/content'
-import { useContent } from '../context/ContentContext'
+import { useContent, useStaticContent } from '../context/ContentContext'
 import ProductSheet from '../components/ProductSheet'
 
 function enquireUrl(phone, item) {
@@ -73,8 +73,8 @@ const CollectionCard = memo(function CollectionCard({ item, index, phone, onOpen
 
 export default function Collection() {
   const content = useContent()
+  const { store } = useStaticContent()
   const collection = Array.isArray(content.collection) ? content.collection : []
-  const store = content.store || {}
   const [searchParams, setSearchParams] = useSearchParams()
   const [selected, setSelected] = useState(null)
 

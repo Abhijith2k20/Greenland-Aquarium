@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { MapPin, Phone, Clock, Navigation, MessageCircle } from 'lucide-react'
 import MagneticButton from './MagneticButton'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 
 export default function Visit() {
-  const { store } = useContent()
+  const { store } = useStaticContent()
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' })
   const [status, setStatus] = useState({ type: '', message: '' })
   const [loading, setLoading] = useState(false)

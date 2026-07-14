@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { MessageCircle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useContent } from '../context/ContentContext'
+import { useContent, useStaticContent } from '../context/ContentContext'
 import { FEATURED_FISH } from '../data/content'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
 import ProductSheet from './ProductSheet'
@@ -204,7 +204,8 @@ function StoreRail({ title, items, phone, onOpen, showCategory, moreTo, moreLabe
 }
 
 export default function FeaturedFish() {
-  const { featuredFish, collection, store } = useContent()
+  const { featuredFish, collection } = useContent()
+  const { store } = useStaticContent()
   const phone = store?.phoneRaw || '919611269901'
   const [selected, setSelected] = useState(null)
   const closeSheet = useCallback(() => setSelected(null), [])

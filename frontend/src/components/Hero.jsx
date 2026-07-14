@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 import { STORE } from '../data/content'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 import { prepareRouteChange } from '../lib/prepareRouteChange'
 import AppLink from './AppLink'
 import heroDesktop from '../assets/hero-desktop.webp'
@@ -46,7 +46,7 @@ function HeroVisitCta({ href, children }) {
 export default function Hero() {
   const sectionRef = useRef(null)
   const imageRef = useRef(null)
-  const { store } = useContent()
+  const { store } = useStaticContent()
   const tagline = store?.tagline || STORE.tagline
   const name = store?.name || STORE.name
 

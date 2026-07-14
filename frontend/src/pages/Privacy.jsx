@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 
 export default function Privacy() {
-  const { store } = useContent()
+  const { store } = useStaticContent()
   const phone = store?.phone || '+91 96112 69901'
   const whatsapp = store?.whatsapp
 

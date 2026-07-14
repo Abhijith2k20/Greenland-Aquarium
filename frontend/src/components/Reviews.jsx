@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 
 export default function Reviews() {
-  const { reviews, store } = useContent()
+  const { reviews, store } = useStaticContent()
   const [active, setActive] = useState(0)
   const review = reviews[active] || reviews[0]
   const n = reviews.length || 1

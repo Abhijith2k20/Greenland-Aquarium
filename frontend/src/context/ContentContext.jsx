@@ -33,25 +33,31 @@ const defaultFeatured = FEATURED_FISH.filter((f) => f.featured !== false).map((f
 // When Sanity is configured, avoid flashing Unsplash fallbacks before CMS data arrives
 const waitForCms = isSanityConfigured
 
-const ContentContext = createContext({
+// store/services/reviews never vary by CMS response (contentApi always returns
+// the same constants) — kept in a separate, never-updating context so the
+// components that only need these (Navbar, Footer, Hero, Visit, Services,
+// Reviews, CustomAquarium, Privacy) don't get swept into the one-time
+// re-render cascade that fires when the CMS-backed data below resolves.
+const STATIC_CONTENT = {
   store: STORE,
+  services: SERVICES,
+  reviews: REVIEWS,
+}
+const StaticContentContext = createContext(STATIC_CONTENT)
+
+const ContentContext = createContext({
   categories: waitForCms ? [] : CATEGORIES,
   collection: waitForCms ? [] : defaultCollection,
   featuredFish: waitForCms ? [] : defaultFeatured,
-  services: SERVICES,
-  reviews: REVIEWS,
   loading: waitForCms,
   source: 'local',
 })
 
 export function ContentProvider({children}) {
   const [content, setContent] = useState({
-    store: STORE,
     categories: waitForCms ? [] : CATEGORIES,
     collection: waitForCms ? [] : defaultCollection,
     featuredFish: waitForCms ? [] : defaultFeatured,
-    services: SERVICES,
-    reviews: REVIEWS,
     loading: waitForCms,
     source: 'local',
   })
@@ -60,16 +66,32 @@ export function ContentProvider({children}) {
     let alive = true
     fetchSiteContent().then((data) => {
       if (!alive) return
-      setContent({...data, loading: false})
+      setContent({
+        categories: data.categories,
+        collection: data.collection,
+        featuredFish: data.featuredFish,
+        loading: false,
+        source: data.source,
+      })
     })
     return () => {
       alive = false
     }
   }, [])
 
-  return <ContentContext.Provider value={content}>{children}</ContentContext.Provider>
+  return (
+    <StaticContentContext.Provider value={STATIC_CONTENT}>
+      <ContentContext.Provider value={content}>{children}</ContentContext.Provider>
+    </StaticContentContext.Provider>
+  )
 }
 
+/** Dynamic, CMS-backed slice — only subscribe here if you actually read categories/collection/featuredFish/loading. */
 export function useContent() {
   return useContext(ContentContext)
+}
+
+/** Stable slice (store/services/reviews) — never re-renders when CMS data loads. */
+export function useStaticContent() {
+  return useContext(StaticContentContext)
 }

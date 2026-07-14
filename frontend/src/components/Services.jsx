@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 import setupImg from '../assets/services/setup.webp'
 import aquascapeImg from '../assets/services/aquascape.webp'
 import maintenanceImg from '../assets/services/maintenance.webp'
@@ -98,7 +98,7 @@ function ServiceCard({ service, phone, eager = false }) {
  * - will-change only while actively scrubbing
  */
 export default function Services() {
-  const { services, store } = useContent()
+  const { services, store } = useStaticContent()
   const items = Array.isArray(services) ? services.slice(0, 3) : []
   const phone = store?.phoneRaw || '919611269901'
   const sectionRef = useRef(null)

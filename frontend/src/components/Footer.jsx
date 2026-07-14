@@ -1,11 +1,11 @@
 import { Phone, MapPin } from 'lucide-react'
 import { NAV_LINKS } from '../data/content'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
 
 export default function Footer() {
-  const { store } = useContent()
+  const { store } = useStaticContent()
 
   return (
     <footer className="site-footer">

@@ -1,10 +1,10 @@
 import { ArrowUpRight } from 'lucide-react'
 import experienceBgDesktop from '../assets/experience-bg-desktop.webp'
 import experienceBgMobile from '../assets/experience-bg-mobile.webp'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 
 export default function CustomAquarium() {
-  const { store } = useContent()
+  const { store } = useStaticContent()
   const href =
     store?.whatsapp ||
     `https://wa.me/${store?.phoneRaw || '919611269901'}?text=${encodeURIComponent(

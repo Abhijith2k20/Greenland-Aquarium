@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Menu, X, ArrowUpRight } from 'lucide-react'
 import { NAV_LINKS } from '../data/content'
-import { useContent } from '../context/ContentContext'
+import { useStaticContent } from '../context/ContentContext'
 import AppLink from './AppLink'
 import SocialLinks from './SocialLinks'
 import NavSearch from './NavSearch'
@@ -19,7 +19,7 @@ export default function Navbar() {
   const [isLg, setIsLg] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(min-width: 1024px)').matches : false,
   )
-  const { store } = useContent()
+  const { store } = useStaticContent()
   const location = useLocation()
   const isHome = location.pathname === '/'
 
