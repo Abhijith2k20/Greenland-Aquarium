@@ -156,16 +156,6 @@ export default function Collection() {
           <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
             Collection
           </h1>
-          <p className="mt-2 max-w-lg text-sm text-white/45 sm:text-base">
-            Browse what’s available at our Horamavu store, then enquire on WhatsApp to check stock
-            and reserve.
-            {search.trim() ? (
-              <>
-                {' '}
-                Showing results for <span className="text-white/70">“{search.trim()}”</span>.
-              </>
-            ) : null}
-          </p>
         </div>
 
         <div className="collection-cats-sticky lg:hidden">
