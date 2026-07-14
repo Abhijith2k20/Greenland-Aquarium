@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { COLLECTION_CATEGORIES } from '../data/content'
@@ -17,6 +17,59 @@ function enquireUrl(phone, item) {
 function formatPrice(price) {
   return `₹${Number(price).toLocaleString('en-IN')}`
 }
+
+const CollectionCard = memo(function CollectionCard({ item, index, phone, onOpen }) {
+  return (
+    <li className="min-w-0">
+      <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-[#0c1014] transition hover:border-white/20">
+        <button
+          type="button"
+          onClick={() => onOpen(item)}
+          className="flex w-full flex-col text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
+        >
+          <div className="relative aspect-[4/3] overflow-hidden bg-[#080b0d] sm:aspect-[5/4]">
+            <img
+              src={item.image}
+              alt=""
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              loading={index < 6 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          </div>
+
+          <div className="flex flex-1 flex-col p-2.5 sm:p-3.5">
+            <h2 className="line-clamp-2 font-display text-[13px] font-semibold leading-snug text-white sm:text-base">
+              {item.name}
+            </h2>
+            {item.price != null ? (
+              <p className="mt-1.5 text-[13px] font-semibold text-white sm:text-[15px]">
+                {formatPrice(item.price)}
+              </p>
+            ) : (
+              <p className="mt-1.5 text-[12px] text-white/45 sm:text-sm">Price on request</p>
+            )}
+            <span className="mt-2 text-[11px] font-medium text-blue/90 sm:text-xs">
+              View details
+            </span>
+          </div>
+        </button>
+
+        <div className="mt-auto border-t border-white/[0.06] p-2 sm:p-2.5">
+          <a
+            href={enquireUrl(phone, item)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#25d366] px-3 py-2 text-[11px] font-semibold text-[#041018] transition hover:brightness-105 sm:text-xs"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MessageCircle size={13} aria-hidden />
+            Enquire
+          </a>
+        </div>
+      </article>
+    </li>
+  )
+})
 
 export default function Collection() {
   const content = useContent()
@@ -71,6 +124,7 @@ export default function Collection() {
     setSearchParams({}, { replace: true })
   }
 
+  const openSheet = useCallback((item) => setSelected(item), [])
   const closeSheet = useCallback(() => setSelected(null), [])
   const phone = store.phoneRaw || '919611269901'
   const hasFilters = category !== 'All' || water !== 'All' || Boolean(search.trim())
@@ -285,56 +339,13 @@ export default function Collection() {
             ) : (
               <ul className="collection-grid grid list-none gap-3 sm:gap-4">
                 {filtered.map((item, i) => (
-                  <li key={item.id} className="min-w-0">
-                    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-[#0c1014] transition hover:border-white/20">
-                      <button
-                        type="button"
-                        onClick={() => setSelected(item)}
-                        className="flex w-full flex-col text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
-                      >
-                        <div className="relative aspect-[4/3] overflow-hidden bg-[#080b0d] sm:aspect-[5/4]">
-                          <img
-                            src={item.image}
-                            alt=""
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                            loading={i < 6 ? 'eager' : 'lazy'}
-                            decoding="async"
-                          />
-                        </div>
-
-                        <div className="flex flex-1 flex-col p-2.5 sm:p-3.5">
-                          <h2 className="line-clamp-2 font-display text-[13px] font-semibold leading-snug text-white sm:text-base">
-                            {item.name}
-                          </h2>
-                          {item.price != null ? (
-                            <p className="mt-1.5 text-[13px] font-semibold text-white sm:text-[15px]">
-                              {formatPrice(item.price)}
-                            </p>
-                          ) : (
-                            <p className="mt-1.5 text-[12px] text-white/45 sm:text-sm">
-                              Price on request
-                            </p>
-                          )}
-                          <span className="mt-2 text-[11px] font-medium text-blue/90 sm:text-xs">
-                            View details
-                          </span>
-                        </div>
-                      </button>
-
-                      <div className="mt-auto border-t border-white/[0.06] p-2 sm:p-2.5">
-                        <a
-                          href={enquireUrl(phone, item)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#25d366] px-3 py-2 text-[11px] font-semibold text-[#041018] transition hover:brightness-105 sm:text-xs"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MessageCircle size={13} aria-hidden />
-                          Enquire
-                        </a>
-                      </div>
-                    </article>
-                  </li>
+                  <CollectionCard
+                    key={item.id}
+                    item={item}
+                    index={i}
+                    phone={phone}
+                    onOpen={openSheet}
+                  />
                 ))}
               </ul>
             )}
