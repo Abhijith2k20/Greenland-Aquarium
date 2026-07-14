@@ -54,7 +54,13 @@ export default function Hero() {
     const el = sectionRef.current
     if (!el) return undefined
 
-    const id = requestAnimationFrame(() => el.classList.add('is-ready'))
+    // Double rAF: guarantees the opacity:0 starting frame actually paints
+    // before we flip the class, so the fade-in transition always plays
+    // (a single rAF can fire before the first paint once nothing else
+    // blocks rendering, collapsing the fade into one frame).
+    let id = requestAnimationFrame(() => {
+      id = requestAnimationFrame(() => el.classList.add('is-ready'))
+    })
 
     const pending = { current: null }
     const moveRaf = { current: 0 }
