@@ -2002,7 +2002,8 @@ img {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-section,
-  .hero-section__img {
+  .hero-section__img,
+  .hero-rail {
     opacity: 1;
     transform: none;
     transition: none;
@@ -2021,6 +2022,17 @@ img {
   gap: 1.75rem;
   width: 100%;
   text-align: center;
+  /* Settles in just after the hero image starts appearing, not with it */
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+.hero-section.is-ready .hero-rail {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (min-width: 768px) {
